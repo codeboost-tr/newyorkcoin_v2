@@ -19,12 +19,21 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y \
             build-essential libtool autotools-dev automake pkg-config bsdmainutils curl \
+            gcc-10 g++-10 \
             g++-mingw-w64-x86-64 mingw-w64-x86-64-dev \
             nsis \
             python3
 
-      - name: Set MinGW default to posix threads
+      - name: Set compilers (GCC 10 native for Qt compat, posix threads for MinGW)
         run: |
+          # Qt 5.9.8 is incompatible with GCC 11's strict std::max - use GCC 10 for native tools
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 10
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 5
+          sudo update-alternatives --set gcc /usr/bin/gcc-10
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 10
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 5
+          sudo update-alternatives --set g++ /usr/bin/g++-10
+          # MinGW uses posix threads variant
           sudo update-alternatives --set x86_64-w64-mingw32-gcc  /usr/bin/x86_64-w64-mingw32-gcc-posix
           sudo update-alternatives --set x86_64-w64-mingw32-g++  /usr/bin/x86_64-w64-mingw32-g++-posix
 
