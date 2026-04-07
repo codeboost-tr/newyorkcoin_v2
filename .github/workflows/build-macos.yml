@@ -10,47 +10,41 @@ jobs:
   build-macos:
     runs-on: macos-latest
     timeout-minutes: 120
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
-          brew update
-          brew install automake libtool pkg-config boost openssl miniupnpc qt@5 qrencode libnatpmp libevent
-
-      - name: Build depends (macOS)
-        run: |
-          make -C depends -j$(sysctl -n hw.logicalcpu) NO_QT=0 NO_UPNP=0
+          brew install automake libtool pkg-config boost openssl@3 miniupnpc qt@5 qrencode libnatpmp libevent berkeley-db@4
 
       - name: Configure
         run: |
           ./autogen.sh
-          CONFIG_SITE=$PWD/depends/$(./depends/config.guess)/share/config.site \
+          export CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$(brew --prefix berkeley-db@4)/include"
+          export LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$(brew --prefix berkeley-db@4)/lib"
+          export PKG_CONFIG_PATH="$(brew --prefix qt@5)/lib/pkgconfig:$(brew --prefix libevent)/lib/pkgconfig:$(brew --prefix miniupnpc)/lib/pkgconfig"
           ./configure \
-            --prefix=/ \
             --disable-tests \
             --disable-bench \
             --with-gui=qt5 \
-            --enable-reduce-exports \
+            --with-boost=$(brew --prefix boost) \
+            --with-incompatible-bdb \
             CXXFLAGS="-O2"
 
       - name: Build
         run: make -j$(sysctl -n hw.logicalcpu)
 
-      - name: Create DMG
-        run: make deploy
-
-      - name: Rename artifacts
+      - name: Collect artifacts
         run: |
-          for f in *.dmg NewYorkCoin*.dmg nyc*.dmg; do
-            [ -f "$f" ] && mv "$f" "NewYorkCoin-Core-macOS.dmg" && break
-          done
           mkdir -p release-macos
+          cp src/qt/nyc-qt release-macos/ 2>/dev/null || true
           cp src/nycd src/nyc-cli src/nyc-tx src/nyc-wallet release-macos/ 2>/dev/null || true
-          [ -f NewYorkCoin-Core-macOS.dmg ] && cp NewYorkCoin-Core-macOS.dmg release-macos/
 
-      - name: Upload DMG
+      - name: Upload macOS binaries
         uses: actions/upload-artifact@v4
         with:
           name: NewYorkCoin-Core-macOS
