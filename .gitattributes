@@ -1,1 +1,11 @@
 src/clientversion.cpp export-subst
+
+# Ensure shell scripts always use LF line endings
+*.sh text eol=lf
+*.m4 text eol=lf
+configure.ac text eol=lf
+Makefile text eol=lf
+depends/config.guess text eol=lf
+depends/config.sub text eol=lf
+depends/config.site.in text eol=lf
+*.py text eol=lf
