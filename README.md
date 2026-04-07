@@ -1,0 +1,168 @@
+NewYorkCoin Core v2.0
+=====================
+
+> **WARNING: EXPERIMENTAL SOFTWARE - READ BEFORE USE**
+>
+> This codebase is under active development and has **not** been audited for
+> production use. It may contain bugs, consensus incompatibilities, or security
+> vulnerabilities. **Do not use this software to store significant funds.**
+> By building or running this software you accept all associated risks.
+
+---
+
+## What is NewYorkCoin?
+
+NewYorkCoin (NYC) is a peer-to-peer digital currency originally launched in
+March 2014. It features:
+
+- **30-second block targets** with DarkGravityWave v3 (DGW v3) difficulty
+  retargeting per block
+- **Legacy P2PKH addresses** starting with `R` (PUBKEY_ADDRESS = 60)
+- **Ticker symbol**: NYC
+- **P2P port**: 17020 (mainnet), 27020 (testnet)
+- **RPC port**: 17021 (mainnet), 27021 (testnet)
+- **Payment URI scheme**: `newyorkcoin:`
+- **bech32 HRP**: `nyc`
+
+For more information see [https://paywith.nyc/](https://paywith.nyc/).
+
+---
+
+## About NewYorkCoin Core v2.0
+
+NewYorkCoin Core v2.0 is a **modernised full-node wallet** forked from
+[Litecoin Core v0.21.4](https://github.com/litecoin-project/litecoin), which is
+itself a fork of [Bitcoin Core](https://github.com/bitcoin/bitcoin).
+
+### Goals
+
+1. **Restore a maintained full-node client** -- the original NYC 1.x codebase is
+   based on Bitcoin Core 0.10 (2015). v2.0 brings the codebase forward to a
+   modern base (0.21.x) with active upstream security backports.
+
+2. **Full NYC network compatibility** -- correct network magic
+   (`0xCF 0xFE 0xC9 0xCC`), protocol version 70012, and chain parameters
+   matching the live NYC mainnet (genesis block, ports, address prefixes).
+
+3. **Clean branding** -- all Litecoin/Bitcoin strings replaced with
+   NewYorkCoin/NYC throughout the Qt GUI, RPC responses, signed-message magic,
+   URI handling, and user-facing text.
+
+4. **Legacy address generation** -- wallet defaults to `OutputType::LEGACY` so
+   receive addresses begin with `R`, matching addresses used on exchanges and
+   the original 1.x wallet.
+
+5. **Android companion wallet** -- the
+   [nyc-openwallet-android](https://github.com/openwalletGH/openwallet-android)
+   project provides a lightweight SPV wallet that can connect to this full node.
+
+6. **Long-term**: add DNS seed infrastructure, checkpoints, and eventually move
+   consensus rules to a clean, audited state ready for community mainnet use.
+
+### Fork Lineage
+
+```
+Bitcoin Core  ->  Litecoin Core v0.21.4  ->  NewYorkCoin Core v2.0
+```
+
+Key departures from the Litecoin base:
+
+| Parameter | Litecoin | NewYorkCoin Core v2.0 |
+|-----------|----------|----------------------|
+| Protocol version | 70017 | **70012** |
+| Network magic | `0xFB 0xC0 0xB6 0xDB` | **`0xCF 0xFE 0xC9 0xCC`** |
+| P2P port | 9333 | **17020** |
+| PUBKEY_ADDRESS | 48 (`L`) | **60 (`R`)** |
+| Block target | 2.5 min | **30 seconds** |
+| Difficulty algo | KGW / DGW | **DGW v3** |
+| bech32 HRP | `ltc` | **`nyc`** |
+
+---
+
+## Build Instructions
+
+See the platform-specific docs in [`doc/`](doc/):
+
+- [Linux](doc/build-unix.md)
+- [macOS](doc/build-osx.md)
+- [Windows (cross-compile)](doc/build-windows.md)
+
+Quick start on Ubuntu/Debian:
+
+```bash
+# Install dependencies
+sudo apt-get install build-essential libtool autotools-dev automake pkg-config \
+  bsdmainutils python3 libssl-dev libevent-dev libboost-all-dev \
+  libminiupnpc-dev libzmq3-dev libqt5gui5 libqt5core5a libqt5dbus5 \
+  qttools5-dev qttools5-dev-tools libdb5.3++-dev
+
+# Configure and build
+./autogen.sh
+./configure --with-gui=qt5
+make -j4
+
+# Binaries produced:
+#   src/nycd           (daemon)
+#   src/nyc-cli        (CLI)
+#   src/qt/nyc-qt      (Qt GUI wallet)
+#   src/nyc-tx         (transaction utility)
+#   src/nyc-wallet     (wallet utility)
+```
+
+### Connecting to the Network
+
+Create `~/.newyorkcoin/newyorkcoin.conf` (or pass `-datadir=<path>`):
+
+```ini
+# Known active mainnet nodes (April 2026)
+addnode=24.52.248.184
+addnode=37.59.20.42
+addnode=66.70.182.1
+addnode=85.19.25.38
+```
+
+---
+
+## Branch Structure
+
+| Branch | Purpose |
+|--------|---------|
+| `nyc-core-v2.0` | Main development branch -- **this branch** |
+| `master` | Upstream Litecoin v0.21.4 base (unmodified) |
+
+---
+
+## Current Status
+
+| Feature | Status |
+|---------|--------|
+| Builds from source (Linux) | OK |
+| Connects to NYC mainnet peers | OK |
+| Correct `R` address generation | OK |
+| NYC branding throughout GUI | OK |
+| DGW v3 difficulty algorithm | OK |
+| Full chain sync | In testing |
+| DNS seed servers | Offline -- use addnode |
+| Checkpoints | Planned |
+| Windows / macOS release binaries | Planned |
+| Security audit | Not yet performed |
+
+---
+
+## License
+
+NewYorkCoin Core is released under the terms of the MIT license. See
+[COPYING](COPYING) for more information or see
+<https://opensource.org/licenses/MIT>.
+
+This software includes code from Bitcoin Core and Litecoin Core, both released
+under the MIT license. All original copyright notices are preserved.
+
+---
+
+## Disclaimer
+
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. THE AUTHORS
+AND CONTRIBUTORS ACCEPT NO LIABILITY FOR ANY LOSS OF FUNDS OR OTHER DAMAGES
+ARISING FROM THE USE OF THIS SOFTWARE. THIS IS EXPERIMENTAL CODE -- USE AT
+YOUR OWN RISK.
