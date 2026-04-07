@@ -26,14 +26,15 @@ jobs:
           # Use glibtoolize (brew libtool) explicitly so autoreconf finds ltmain.sh
           export LIBTOOLIZE="$(brew --prefix libtool)/bin/glibtoolize"
           autoreconf -fi
-          export CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$(brew --prefix berkeley-db@4)/include"
-          export LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$(brew --prefix berkeley-db@4)/lib"
+          export CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$(brew --prefix berkeley-db@4)/include -I$(brew --prefix boost)/include -I$(brew --prefix miniupnpc)/include"
+          export LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$(brew --prefix berkeley-db@4)/lib -L$(brew --prefix boost)/lib"
           export PKG_CONFIG_PATH="$(brew --prefix qt@5)/lib/pkgconfig:$(brew --prefix libevent)/lib/pkgconfig:$(brew --prefix miniupnpc)/lib/pkgconfig"
           ./configure \
             --disable-tests \
             --disable-bench \
             --with-gui=qt5 \
             --with-boost=$(brew --prefix boost) \
+            --with-boost-libdir=$(brew --prefix boost)/lib \
             --with-incompatible-bdb \
             CXXFLAGS="-O2"
 
