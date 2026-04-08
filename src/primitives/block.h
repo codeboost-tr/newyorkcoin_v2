@@ -125,10 +125,10 @@ public:
     {
         READWRITEAS(CBlockHeader, obj);
         if (obj.IsAuxpow()) {
-            SER_READ(obj.auxpow, obj = std::make_shared<CAuxPow>());
+            SER_READ(obj, obj.auxpow = std::make_shared<CAuxPow>());
             READWRITE(*obj.auxpow);
         } else {
-            SER_READ(obj.auxpow, obj.reset());
+            SER_READ(obj, obj.auxpow.reset());
         }
         READWRITE(obj.vtx);
         if (!(s.GetVersion() & SERIALIZE_NO_MWEB)) {
