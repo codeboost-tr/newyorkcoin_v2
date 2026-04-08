@@ -17,6 +17,7 @@ March 2014. It features:
 
 - **30-second block targets** with DarkGravityWave v3 (DGW v3) difficulty
   retargeting per block
+- **Scrypt proof-of-work** with AuxPoW (merged mining) support — chain ID **56**
 - **Legacy P2PKH addresses** starting with `R` (PUBKEY_ADDRESS = 60)
 - **Ticker symbol**: NYC
 - **P2P port**: 17020 (mainnet), 27020 (testnet)
@@ -52,11 +53,15 @@ itself a fork of [Bitcoin Core](https://github.com/bitcoin/bitcoin).
    receive addresses begin with `R`, matching addresses used on exchanges and
    the original 1.x wallet.
 
-5. **Android companion wallet** -- the
+5. **Merged mining (AuxPoW)** -- NYC uses chain ID 56 and follows the
+   Namecoin/Dogecoin AuxPoW protocol.  Pools can merge-mine NYC alongside any
+   other Scrypt coin.  The `getauxblock` RPC provides the work interface.
+
+6. **Android companion wallet** -- the
    [nyc-openwallet-android](https://github.com/openwalletGH/openwallet-android)
    project provides a lightweight SPV wallet that can connect to this full node.
 
-6. **Long-term**: add DNS seed infrastructure, checkpoints, and eventually move
+7. **Long-term**: add DNS seed infrastructure, checkpoints, and eventually move
    consensus rules to a clean, audited state ready for community mainnet use.
 
 ### Fork Lineage
@@ -76,6 +81,7 @@ Key departures from the Litecoin base:
 | Block target | 2.5 min | **30 seconds** |
 | Difficulty algo | KGW / DGW | **DGW v3** |
 | bech32 HRP | `ltc` | **`nyc`** |
+| Merged mining | No | **AuxPoW (chain ID 56)** |
 
 ---
 
@@ -123,6 +129,62 @@ addnode=85.19.25.38
 
 ---
 
+## Merged Mining (AuxPoW)
+
+NewYorkCoin Core v2.0 supports **merge mining** via the AuxPoW protocol
+(the same system used by Namecoin, Dogecoin, and others).
+
+| Parameter | Value |
+|-----------|-------|
+| Chain ID | **56** (0x38) |
+| PoW algo | Scrypt (1024/1/1) |
+| Block version flag | `0x100` (bit 8 of nVersion) |
+| nVersion of AuxPoW block | `(56 << 16) \| 0x100 \| base` = `0x00380101` |
+
+### How it works
+
+A miner places the NYC block hash inside the coinbase scriptSig of a parent
+chain block (e.g. a Litecoin or Dogecoin block) using the magic bytes
+`0xfabe6d6d`.  When the parent block solves its own difficulty, the miner
+submits the parent block header and coinbase merkle proof to NYC as an AuxPoW
+solution.  As long as the parent block's Scrypt hash satisfies NYC's current
+target, the NYC block is accepted.
+
+### Pool integration — `getauxblock` RPC
+
+```bash
+# Create a new work item (returns block hash, target, height, etc.)
+nyc-cli getauxblock
+
+# Submit a solved AuxPoW
+nyc-cli getauxblock <hash> <auxpow-hex>
+```
+
+The returned JSON contains:
+
+| Field | Description |
+|-------|-------------|
+| `hash` | NYC block hash to embed in the parent coinbase |
+| `chainid` | Always 56 |
+| `previousblockhash` | Current chain tip |
+| `coinbasevalue` | Total block reward available (satoshis) |
+| `bits` | Compact difficulty target |
+| `height` | Height of the next block |
+| `target` | Full 256-bit PoW target (big-endian hex) |
+
+### Coinbase commitment format
+
+```
+OP_RETURN  (or anywhere in scriptSig)
+  0xfabe6d6d          -- 4-byte merged-mining magic
+  <chainRoot>         -- 32 bytes: chain merkle tree root (= NYC block hash
+                         when mining NYC alone, i.e. nSize=1)
+  <nSize>             -- uint32 LE: 2^(chain branch height), 1 for solo NYC
+  <nNonce>            -- uint32 LE: chainId % nSize, 0 for solo NYC (56%1=0)
+```
+
+---
+
 ## Branch Structure
 
 | Branch | Purpose |
@@ -143,6 +205,7 @@ addnode=85.19.25.38
 | DGW v3 difficulty algorithm | OK |
 | Full chain sync | In testing |
 | DNS seed servers | Offline -- use addnode |
+| AuxPoW merged mining | OK — chain ID 56, `getauxblock` RPC |
 | Checkpoints | Planned |
 | Windows / macOS release binaries | Planned |
 | Security audit | Not yet performed |
