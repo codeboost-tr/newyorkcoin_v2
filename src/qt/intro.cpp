@@ -223,6 +223,31 @@ bool Intro::showIfNeeded(bool& did_show_intro, bool& prune)
                 if (TryCreateDirectories(GUIUtil::qstringToBoostPath(dataDir))) {
                     // If a new data directory has been created, make wallets subdirectory too
                     TryCreateDirectories(GUIUtil::qstringToBoostPath(dataDir) / "wallets");
+                    // Write a default newyorkcoin.conf with known mainnet nodes
+                    fs::path confPath = GUIUtil::qstringToBoostPath(dataDir) / "newyorkcoin.conf";
+                    if (!fs::exists(confPath)) {
+                        fsbridge::ofstream confFile(confPath);
+                        confFile <<
+                            "# NewYorkCoin Core - default configuration\n"
+                            "# P2P port: 17020\n"
+                            "\n"
+                            "# Known active mainnet nodes (April 2026)\n"
+                            "addnode=24.52.248.184\n"
+                            "addnode=37.59.20.42\n"
+                            "addnode=66.70.182.1\n"
+                            "addnode=85.19.25.38\n"
+                            "\n"
+                            "# Fee (0 = free transactions, miners accept them on NYC network)\n"
+                            "paytxfee=0\n"
+                            "mintxfee=0\n"
+                            "\n"
+                            "# Network\n"
+                            "listen=1\n"
+                            "maxconnections=40\n"
+                            "\n"
+                            "# Speed up initial blockchain sync\n"
+                            "dbcache=512\n";
+                    }
                 }
                 break;
             } catch (const fs::filesystem_error&) {
