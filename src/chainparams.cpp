@@ -183,9 +183,9 @@ public:
         assert(genesis.hashMerkleRoot ==
                uint256S("0x2bad42ac6e0ccc4808d8df0fd50ac8634eea335b1412b1ef52864b430a87b262"));
 
-        // ── DNS seeds (from NewYorkCoinNYC community) ────────────────────────
-        vSeeds.emplace_back("dnsseed.nycoin.money");
-        vSeeds.emplace_back("dnsseed.nycoin.community");
+        // ── DNS seeds ────────────────────────────────────────────────────────
+        // No active DNS seeders; peers are supplied via newyorkcoin.conf addnode entries.
+        vSeeds.clear();
 
         // ── Address prefixes ─────────────────────────────────────────────────
         // P2PKH  0x3C (60)  → 'R' prefix addresses
