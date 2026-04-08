@@ -11,6 +11,26 @@
 #include <uint256.h>
 #include <mweb/mweb_models.h>
 
+#include <memory>
+
+// Forward declaration — full definition is in auxpow.h (included at bottom of
+// this file after CBlockHeader and CBlock are fully defined).
+class CAuxPow;
+
+//
+// AuxPoW version-field constants.
+//
+// nVersion layout for an AuxPoW-mined block:
+//   bits  0-15 : base version (e.g. 1)
+//   bit      8 : BLOCK_VERSION_AUXPOW flag — set when block carries auxpow
+//   bits 16-31 : chain ID   (NYC uses 56, stored via nVersion >> 16)
+//
+// Example NYC AuxPoW block: nVersion = (56 << 16) | 0x100 | 1 = 0x00380101
+//
+static const int32_t BLOCK_VERSION_AUXPOW      = (1 << 8);   // 0x100
+static const int32_t BLOCK_VERSION_CHAIN_ID    = 56;          // NYC chain ID
+static const int32_t BLOCK_VERSION_CHAIN_START = (1 << 16);   // 0x10000
+
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
  * requirements.  When they solve the proof-of-work, they broadcast the block
@@ -59,6 +79,18 @@ public:
     {
         return (int64_t)nTime;
     }
+
+    /** Return true if this block was mined via merged mining (AuxPoW). */
+    bool IsAuxpow() const
+    {
+        return (nVersion & BLOCK_VERSION_AUXPOW) != 0;
+    }
+
+    /** Return the chain ID encoded in nVersion (bits 16-31). */
+    int32_t GetChainId() const
+    {
+        return nVersion >> 16;
+    }
 };
 
 
@@ -72,6 +104,11 @@ public:
     mutable bool fChecked;
 
     MWEB::Block mweb_block;
+
+    // AuxPoW data — present and non-null only when IsAuxpow() is true.
+    // The SERIALIZE_METHODS below conditionally includes it, so the wire
+    // format is: [CBlockHeader][CAuxPow?][vtx][mweb_block?]
+    std::shared_ptr<CAuxPow> auxpow;
 
     CBlock()
     {
@@ -87,6 +124,12 @@ public:
     SERIALIZE_METHODS(CBlock, obj)
     {
         READWRITEAS(CBlockHeader, obj);
+        if (obj.IsAuxpow()) {
+            SER_READ(obj.auxpow, obj = std::make_shared<CAuxPow>());
+            READWRITE(*obj.auxpow);
+        } else {
+            SER_READ(obj.auxpow, obj.reset());
+        }
         READWRITE(obj.vtx);
         if (!(s.GetVersion() & SERIALIZE_NO_MWEB)) {
             if (obj.vtx.size() >= 2 && obj.vtx.back()->IsHogEx()) {
@@ -101,6 +144,7 @@ public:
         vtx.clear();
         fChecked = false;
         mweb_block.SetNull();
+        auxpow.reset();
     }
 
     CBlockHeader GetBlockHeader() const
@@ -151,5 +195,12 @@ struct CBlockLocator
         return vHave.empty();
     }
 };
+
+// Include the full CAuxPow definition after CBlockHeader and CBlock are
+// defined.  This breaks the circular-include cycle:  auxpow.h includes
+// block.h (for CBlockHeader), and block.h includes auxpow.h here (for the
+// SERIALIZE_METHODS / READWRITE(*obj.auxpow) instantiation).
+// The include guards on both files prevent infinite recursion.
+#include <auxpow.h>
 
 #endif // BITCOIN_PRIMITIVES_BLOCK_H

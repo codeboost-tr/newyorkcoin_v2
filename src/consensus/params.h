@@ -100,6 +100,16 @@ struct Params {
      */
     bool signet_blocks{false};
     std::vector<uint8_t> signet_challenge;
+
+    //
+    // AuxPoW (merged mining) parameters.
+    //
+
+    /** Chain ID embedded in nVersion bits 16-31 of AuxPoW blocks.
+     *  NYC uses chain ID 56 (0x38) — the original NewYorkCoin chain ID.
+     *  Miners must put exactly this ID in the merged-mining commitment so that
+     *  the same parent block cannot be reused for a different chain. */
+    int nAuxpowChainId{56};
 };
 } // namespace Consensus
 

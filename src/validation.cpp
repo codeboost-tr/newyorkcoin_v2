@@ -28,6 +28,7 @@
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
+#include <auxpow.h>
 #include <pow.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
@@ -1190,8 +1191,17 @@ bool ReadBlockFromDisk(CBlock& block, const FlatFilePos& pos, const Consensus::P
     }
 
     // Check the header
-    if (!CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
-        return error("ReadBlockFromDisk: Errors in block header at %s", pos.ToString());
+    if (block.IsAuxpow()) {
+        if (!block.auxpow)
+            return error("ReadBlockFromDisk: AuxPoW block missing auxpow data at %s", pos.ToString());
+        if (!block.auxpow->Check(block.GetHash(), consensusParams.nAuxpowChainId, consensusParams))
+            return error("ReadBlockFromDisk: AuxPoW check failed at %s", pos.ToString());
+        if (!CheckProofOfWork(block.auxpow->GetParentBlockPoWHash(), block.nBits, consensusParams))
+            return error("ReadBlockFromDisk: AuxPoW parent PoW failed at %s", pos.ToString());
+    } else {
+        if (!CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
+            return error("ReadBlockFromDisk: Errors in block header at %s", pos.ToString());
+    }
 
     // Signet only: check block solution
     if (consensusParams.signet_blocks && !CheckSignetBlockSolution(block, consensusParams)) {
@@ -3464,10 +3474,14 @@ static bool FindUndoPos(BlockValidationState &state, int nFile, FlatFilePos &pos
 
 static bool CheckBlockHeader(const CBlockHeader& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
-    // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
-        return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "high-hash", "proof of work failed");
-
+    // For AuxPoW blocks the parent-chain PoW is checked in CheckBlock() once
+    // the full auxpow structure is available.  A plain CBlockHeader carries
+    // only the 80-byte header, so skip the PoW check here for those blocks.
+    if (fCheckPOW && !block.IsAuxpow()) {
+        if (!CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
+            return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER,
+                                 "high-hash", "proof of work failed");
+    }
     return true;
 }
 
@@ -3482,6 +3496,26 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     // redundant with the call in AcceptBlockHeader.
     if (!CheckBlockHeader(block, state, consensusParams, fCheckPOW))
         return false;
+
+    // AuxPoW: if the block claims to be merge-mined, validate the auxpow
+    // proof now that we have the full block data (including the auxpow struct).
+    if (fCheckPOW && block.IsAuxpow()) {
+        if (!block.auxpow)
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
+                                 "bad-auxpow-missing",
+                                 "AuxPoW block has no auxpow data");
+        if (!block.auxpow->Check(block.GetHash(),
+                                 consensusParams.nAuxpowChainId,
+                                 consensusParams))
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
+                                 "bad-auxpow",
+                                 "AuxPoW check failed");
+        if (!CheckProofOfWork(block.auxpow->GetParentBlockPoWHash(),
+                              block.nBits, consensusParams))
+            return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER,
+                                 "high-hash",
+                                 "AuxPoW parent block does not meet target");
+    }
 
     // Signet only: check block solution
     if (consensusParams.signet_blocks && fCheckPOW && !CheckSignetBlockSolution(block, consensusParams)) {
@@ -3665,7 +3699,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
             return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, strprintf("bad-version(0x%08x)", block.nVersion),
                                  strprintf("rejected nVersion=0x%08x block", block.nVersion));
 
-    if (block.nVersion < VERSIONBITS_TOP_BITS && IsWitnessEnabled(pindexPrev, consensusParams))
+    if (block.nVersion < VERSIONBITS_TOP_BITS && !block.IsAuxpow() && IsWitnessEnabled(pindexPrev, consensusParams))
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, strprintf("bad-version(0x%08x)", block.nVersion),
                                  strprintf("rejected nVersion=0x%08x block", block.nVersion));
 

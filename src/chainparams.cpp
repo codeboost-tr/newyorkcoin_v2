@@ -127,6 +127,13 @@ public:
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting            = false;
 
+        // ── AuxPoW (merged mining) ──────────────────────────────────────────
+        // NYC's chain ID for merged mining.  The original NewYorkCoin network
+        // used chain ID 56 (0x38).  Miners place this ID in the chain-slot of
+        // the merge-mining coinbase commitment so two chains with different IDs
+        // cannot share the same parent block (prevents one-hop attacks).
+        consensus.nAuxpowChainId = 56;
+
         // ── BIP9 / Taproot / MWEB ───────────────────────────────────────────
         // Phase 2: defer all soft-fork activations.
         consensus.nRuleChangeActivationThreshold = 2160; // 75% of 2880

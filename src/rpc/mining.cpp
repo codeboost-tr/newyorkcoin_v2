@@ -4,6 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <amount.h>
+#include <arith_uint256.h>
+#include <auxpow.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <consensus/consensus.h>
@@ -24,6 +26,8 @@
 #include <script/script.h>
 #include <script/signingprovider.h>
 #include <shutdown.h>
+#include <streams.h>
+#include <sync.h>
 #include <txmempool.h>
 #include <univalue.h>
 #include <util/fees.h>
@@ -1221,6 +1225,181 @@ static RPCHelpMan estimaterawfee()
     };
 }
 
+// ── AuxPoW merged-mining RPCs ──────────────────────────────────────────────
+//
+// Work items created by getauxblock() are stored here so submitauxblock() can
+// look them up.  Items are replaced whenever a new best block arrives.
+//
+namespace {
+    /** Guards g_auxpow_blocks. */
+    Mutex g_auxpow_mutex;
+
+    /** Map of block-hash → block for outstanding AuxPoW work items. */
+    std::map<uint256, std::shared_ptr<CBlock>> g_auxpow_blocks
+        GUARDED_BY(g_auxpow_mutex);
+} // namespace
+
+/**
+ * getauxblock
+ *
+ * Called with no arguments: creates a new block template (or reuses the most
+ * recent one if the tip has not changed) and returns the information a miner
+ * needs to submit a merged-mining solution.
+ *
+ * Called with <hash> <auxpow>: submits an auxpow solution for a previously
+ * returned work item.  <hash> is the NYC block hash returned by the no-arg
+ * form; <auxpow> is the hex-encoded serialized CAuxPow structure.
+ */
+static RPCHelpMan getauxblock()
+{
+    return RPCHelpMan{"getauxblock",
+        "\nIf called with no arguments, creates (or retrieves) a block template for\n"
+        "merged mining and returns the data needed to mine it on a parent chain.\n"
+        "If called with a block hash and auxpow hex string, submits a solved\n"
+        "merged-mining proof for a previously returned work item.\n",
+        {
+            {"hash",   RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED_NAMED_ARG,
+             "The NYC block hash to solve (from a previous no-arg getauxblock call)"},
+            {"auxpow", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED_NAMED_ARG,
+             "The serialized CAuxPow structure (hex), proving the parent block PoW"},
+        },
+        {
+            RPCResult{"when creating work", RPCResult::Type::OBJ, "", "",
+                {
+                    {RPCResult::Type::STR_HEX, "hash",              "NYC block hash to merge-mine"},
+                    {RPCResult::Type::NUM,     "chainid",           "NYC chain ID (56)"},
+                    {RPCResult::Type::STR_HEX, "previousblockhash","the previous NYC block hash"},
+                    {RPCResult::Type::NUM,     "coinbasevalue",     "total coinbase value available (satoshis)"},
+                    {RPCResult::Type::STR_HEX, "bits",              "compact difficulty target for the next block"},
+                    {RPCResult::Type::NUM,     "height",            "height of the next block"},
+                    {RPCResult::Type::STR_HEX, "target",            "PoW target (256-bit, big-endian hex)"},
+                }
+            },
+            RPCResult{"when submitting", RPCResult::Type::BOOL, "", "true if the block was accepted"},
+        },
+        RPCExamples{
+            HelpExampleCli("getauxblock", "")
+            + HelpExampleCli("getauxblock", "\"myhash\" \"myauxpow\"")
+            + HelpExampleRpc("getauxblock", "")
+        },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    // ── Submit path ──────────────────────────────────────────────────────
+    if (!request.params[0].isNull() && !request.params[1].isNull()) {
+        const uint256 hashBlock = ParseHashV(request.params[0], "hash");
+
+        // Locate the stored block template.
+        std::shared_ptr<CBlock> pblock;
+        {
+            LOCK(g_auxpow_mutex);
+            auto it = g_auxpow_blocks.find(hashBlock);
+            if (it == g_auxpow_blocks.end())
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                    "Block hash not found — call getauxblock with no arguments first");
+            pblock = it->second;
+        }
+
+        // Deserialize the hex-encoded CAuxPow.
+        const std::vector<unsigned char> auxpowBytes =
+            ParseHexV(request.params[1], "auxpow");
+        CDataStream ss(auxpowBytes, SER_NETWORK, PROTOCOL_VERSION);
+        auto auxpow = std::make_shared<CAuxPow>();
+        try {
+            ss >> *auxpow;
+        } catch (const std::exception& e) {
+            throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
+                strprintf("AuxPow decode failed: %s", e.what()));
+        }
+
+        // Attach the auxpow and set the AuxPoW version bits on the block.
+        pblock->auxpow = auxpow;
+        pblock->nVersion = (BLOCK_VERSION_CHAIN_ID * BLOCK_VERSION_CHAIN_START)
+                           | BLOCK_VERSION_AUXPOW
+                           | (pblock->nVersion & 0xFF); // keep low-byte version
+
+        // Submit the block.
+        bool new_block = false;
+        auto sc = std::make_shared<submitblock_StateCatcher>(pblock->GetHash());
+        RegisterSharedValidationInterface(sc);
+        bool accepted = EnsureChainman(request.context).ProcessNewBlock(
+            Params(), pblock, /* fForceProcessing */ true, &new_block);
+        UnregisterSharedValidationInterface(sc);
+
+        if (!new_block && accepted) {
+            return UniValue(true); // already have it
+        }
+        if (!accepted) {
+            throw JSONRPCError(RPC_VERIFY_ERROR, "AuxPoW block rejected");
+        }
+        return UniValue(new_block);
+    }
+
+    // ── Create path ──────────────────────────────────────────────────────
+    if (!request.params[0].isNull() || !request.params[1].isNull()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+            "getauxblock: provide both hash AND auxpow, or neither");
+    }
+
+    const CTxMemPool& mempool = EnsureMemPool(request.context);
+    ChainstateManager& chainman = EnsureChainman(request.context);
+    const CChainParams& chainparams = Params();
+
+    // Use OP_TRUE as the coinbase scriptPubKey.  Mining pools wishing to
+    // claim the block reward should use getblocktemplate instead.
+    CScript coinbaseScript;
+    coinbaseScript << OP_TRUE;
+
+    std::unique_ptr<CBlockTemplate> pblocktemplate;
+    {
+        LOCK(cs_main);
+        BlockAssembler assembler(mempool, chainparams);
+        pblocktemplate = assembler.CreateNewBlock(coinbaseScript);
+    }
+    if (!pblocktemplate)
+        throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
+
+    CBlock* pblock = &pblocktemplate->block;
+
+    // Set nVersion to signal AuxPoW.
+    pblock->nVersion = (BLOCK_VERSION_CHAIN_ID * BLOCK_VERSION_CHAIN_START)
+                       | BLOCK_VERSION_AUXPOW
+                       | (pblock->nVersion & 0xFF);
+
+    // Store this work item.
+    const uint256 hashBlock = pblock->GetHash();
+    {
+        LOCK(g_auxpow_mutex);
+        // Evict stale items beyond a reasonable limit.
+        if (g_auxpow_blocks.size() > 16)
+            g_auxpow_blocks.clear();
+
+        if (g_auxpow_blocks.find(hashBlock) == g_auxpow_blocks.end()) {
+            auto spBlock = std::make_shared<CBlock>(*pblock);
+            g_auxpow_blocks[hashBlock] = spBlock;
+        }
+    }
+
+    // Compute the full 256-bit target from nBits.
+    arith_uint256 hashTarget;
+    hashTarget.SetCompact(pblock->nBits);
+
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("hash",              hashBlock.GetHex());
+    result.pushKV("chainid",           chainparams.GetConsensus().nAuxpowChainId);
+    result.pushKV("previousblockhash", pblock->hashPrevBlock.GetHex());
+    result.pushKV("coinbasevalue",     (int64_t)pblock->vtx[0]->vout[0].nValue);
+    result.pushKV("bits",              strprintf("%08x", pblock->nBits));
+    {
+        LOCK(cs_main);
+        result.pushKV("height",
+            (int64_t)(chainman.ActiveChain().Tip()->nHeight + 1));
+    }
+    result.pushKV("target",            hashTarget.GetHex());
+    return result;
+},
+    };
+}
+
 void RegisterMiningRPCCommands(CRPCTable &t)
 {
 // clang-format off
@@ -1233,6 +1412,7 @@ static const CRPCCommand commands[] =
     { "mining",             "getblocktemplate",       &getblocktemplate,       {"template_request"} },
     { "mining",             "submitblock",            &submitblock,            {"hexdata","dummy"} },
     { "mining",             "submitheader",           &submitheader,           {"hexdata"} },
+    { "mining",             "getauxblock",            &getauxblock,            {"hash","auxpow"} },
 
 
     { "generating",         "generatetoaddress",      &generatetoaddress,      {"nblocks","address","maxtries"} },

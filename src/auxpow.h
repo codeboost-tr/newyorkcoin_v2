@@ -1,0 +1,92 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2011 Dogecoin Developers
+// Copyright (c) 2014 Daniel Kraft
+// Copyright (c) 2024 NewYorkCoin Developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOIN_AUXPOW_H
+#define BITCOIN_AUXPOW_H
+
+#include <consensus/params.h>
+#include <primitives/block.h>
+#include <primitives/transaction.h>
+#include <serialize.h>
+#include <uint256.h>
+
+#include <memory>
+#include <vector>
+
+/**
+ * Data for the merge-mining auxpow.  This structure is included in an NYC
+ * block when it has been mined via merged mining on a parent blockchain.
+ * It proves that the parent block's coinbase commits to this NYC block hash
+ * and that the parent block meets NYC's PoW target.
+ *
+ * Wire format (inside CBlock, after the 80-byte header, before vtx):
+ *   coinbaseTx   (CTransaction)
+ *   parentBlock  (CBlockHeader - 80 bytes)
+ *   vMerkleBranch  (vector<uint256>)
+ *   nIndex         (int32)
+ *   vChainMerkleBranch (vector<uint256>)
+ *   nChainIndex    (int32)
+ *
+ * Merged-mining commitment in coinbase scriptSig:
+ *   0xfabe6d6d  (4-byte magic)
+ *   chainRoot   (32 bytes - hash or root of chain merkle tree)
+ *   nSize       (uint32 LE - must equal 2^vChainMerkleBranch.size())
+ *   nNonce      (uint32 LE - must equal nChainId % nSize)
+ */
+class CAuxPow
+{
+public:
+    /** The coinbase transaction of the parent block (first tx, nIndex == 0). */
+    CTransactionRef coinbaseTx;
+
+    /** The parent block header.  Its PoW hash must satisfy NYC's target. */
+    CBlockHeader parentBlock;
+
+    /** Merkle branch linking coinbaseTx hash to parentBlock.hashMerkleRoot. */
+    std::vector<uint256> vMerkleBranch;
+
+    /** Index of the coinbase in the parent block tx list (always 0). */
+    int nIndex;
+
+    /** Merkle branch for the NYC block hash within the chain hash merkle tree.
+     *  Empty when single-chain merge mining (nSize == 1). */
+    std::vector<uint256> vChainMerkleBranch;
+
+    /** Index of the NYC block hash in the chain hash merkle tree.
+     *  Must equal nChainId % (1 << vChainMerkleBranch.size()). */
+    int nChainIndex;
+
+    CAuxPow() : nIndex(0), nChainIndex(0) {}
+
+    SERIALIZE_METHODS(CAuxPow, obj)
+    {
+        READWRITE(obj.coinbaseTx);
+        READWRITE(obj.parentBlock);
+        READWRITE(obj.vMerkleBranch);
+        READWRITE(obj.nIndex);
+        READWRITE(obj.vChainMerkleBranch);
+        READWRITE(obj.nChainIndex);
+    }
+
+    /**
+     * Validate the auxpow proof.
+     * @param hashAuxBlock  The hash of the NYC block containing this auxpow.
+     * @param nChainId      NYC's chain ID (must match what's in the coinbase).
+     * @param params        Consensus parameters.
+     * @return True if the proof is valid.
+     */
+    bool Check(const uint256& hashAuxBlock, int nChainId,
+               const Consensus::Params& params) const;
+
+    /** Get the parent block's PoW hash (used to verify against NYC's target). */
+    uint256 GetParentBlockPoWHash() const
+    {
+        return parentBlock.GetPoWHash();
+    }
+};
+
+#endif // BITCOIN_AUXPOW_H
