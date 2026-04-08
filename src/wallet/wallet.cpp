@@ -3912,15 +3912,18 @@ std::shared_ptr<CWallet> CWallet::Create(interfaces::Chain& chain, const std::st
 
     if (gArgs.IsArgSet("-mintxfee")) {
         CAmount n = 0;
-        if (!ParseMoney(gArgs.GetArg("-mintxfee", ""), n) || 0 == n) {
+        if (!ParseMoney(gArgs.GetArg("-mintxfee", ""), n)) {
             error = AmountErrMsg("mintxfee", gArgs.GetArg("-mintxfee", ""));
             return nullptr;
         }
-        if (n > HIGH_TX_FEE_PER_KB) {
-            warnings.push_back(AmountHighWarn("-mintxfee") + Untranslated(" ") +
-                               _("This is the minimum transaction fee you pay on every transaction."));
+        // mintxfee=0 means "use default" — skip silently (common in legacy NYC configs)
+        if (n > 0) {
+            if (n > HIGH_TX_FEE_PER_KB) {
+                warnings.push_back(AmountHighWarn("-mintxfee") + Untranslated(" ") +
+                                   _("This is the minimum transaction fee you pay on every transaction."));
+            }
+            walletInstance->m_min_fee = CFeeRate(n);
         }
-        walletInstance->m_min_fee = CFeeRate(n);
     }
 
     if (gArgs.IsArgSet("-maxapsfee")) {
