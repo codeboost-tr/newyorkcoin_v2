@@ -26,6 +26,7 @@ jobs:
             libsqlite3-dev \
             libminiupnpc-dev \
             libzmq3-dev \
+            libfmt-dev \
             python3
 
       - name: Configure for Linux
