@@ -109,7 +109,7 @@ struct Params {
      *  NYC uses chain ID 56 (0x38) — the original NewYorkCoin chain ID.
      *  Miners must put exactly this ID in the merged-mining commitment so that
      *  the same parent block cannot be reused for a different chain. */
-    int nAuxpowChainId{56};
+    int nAuxpowChainId{1985};
 };
 } // namespace Consensus
 

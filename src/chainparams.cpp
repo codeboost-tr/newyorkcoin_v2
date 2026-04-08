@@ -132,7 +132,7 @@ public:
         // used chain ID 56 (0x38).  Miners place this ID in the chain-slot of
         // the merge-mining coinbase commitment so two chains with different IDs
         // cannot share the same parent block (prevents one-hop attacks).
-        consensus.nAuxpowChainId = 56;
+        consensus.nAuxpowChainId = 1985; // 0x07C1 — NYC historical chain ID
 
         // ── BIP9 / Taproot / MWEB ───────────────────────────────────────────
         // Phase 2: defer all soft-fork activations.
