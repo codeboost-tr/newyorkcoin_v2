@@ -1,0 +1,80 @@
+name: Linux Build
+
+on:
+  push:
+    branches: [ nyc-core-v2.0 ]
+    tags:     [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y \
+            build-essential libtool autotools-dev automake pkg-config bsdmainutils curl \
+            gcc-10 g++-10 \
+            libdb-dev libdb++-dev \
+            libboost-all-dev \
+            libssl-dev \
+            libevent-dev \
+            python3
+
+      - name: Set compilers (GCC 10 for Qt compat)
+        run: |
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 10
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 5
+          sudo update-alternatives --set gcc /usr/bin/gcc-10
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 10
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 5
+          sudo update-alternatives --set g++ /usr/bin/g++-10
+
+      - name: Cache depends
+        uses: actions/cache@v4
+        with:
+          path: depends/built
+          key: depends-linux-x86_64-${{ hashFiles('depends/packages/*.mk', 'depends/Makefile') }}
+          restore-keys: depends-linux-x86_64-
+
+      - name: Build depends for Linux
+        run: |
+          make -C depends -j$(nproc) HOST=x86_64-linux-gnu
+
+      - name: Configure for Linux
+        run: |
+          autoreconf -fi
+          CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
+          ./configure \
+            --prefix=/ \
+            --host=x86_64-linux-gnu \
+            --disable-tests \
+            --disable-bench \
+            --with-gui=no \
+            --enable-reduce-exports \
+            CXXFLAGS="-O2"
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p release-linux
+          cp src/nycd src/nyc-cli src/nyc-tx release-linux/
+          [ -f src/nyc-wallet ] && cp src/nyc-wallet release-linux/ || true
+
+      - name: Create tarball
+        run: |
+          tar -czf newyorkcoin-linux-x86_64.tar.gz -C release-linux .
+
+      - name: Upload Linux binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: NewYorkCoin-Core-Linux
+          path: newyorkcoin-linux-x86_64.tar.gz
+          retention-days: 30
