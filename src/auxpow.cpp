@@ -27,11 +27,9 @@ static uint256 ComputeAuxMerkleRootFromBranch(const uint256& leaf,
     uint256 hash = leaf;
     for (const uint256& sibling : branch) {
         if (nIndex & 1)
-            hash = Hash(sibling.begin(), sibling.end(),
-                        hash.begin(), hash.end());
+            hash = Hash(sibling, hash);
         else
-            hash = Hash(hash.begin(), hash.end(),
-                        sibling.begin(), sibling.end());
+            hash = Hash(hash, sibling);
         nIndex >>= 1;
     }
     return hash;
