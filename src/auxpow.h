@@ -65,11 +65,11 @@ public:
     SERIALIZE_METHODS(CAuxPow, obj)
     {
         READWRITE(obj.coinbaseTx);
-        READWRITE(obj.parentBlock);
         READWRITE(obj.vMerkleBranch);
         READWRITE(obj.nIndex);
         READWRITE(obj.vChainMerkleBranch);
         READWRITE(obj.nChainIndex);
+        READWRITE(obj.parentBlock);
     }
 
     /**
