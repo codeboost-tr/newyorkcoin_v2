@@ -59,3 +59,59 @@ jobs:
           name: NewYorkCoin-Core-Linux
           path: newyorkcoin-linux-x86_64.tar.gz
           retention-days: 30
+
+  build-linux-qt:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y \
+            build-essential libtool autotools-dev automake pkg-config bsdmainutils curl \
+            libboost-system-dev libboost-filesystem-dev libboost-thread-dev libboost-test-dev \
+            libdb5.3-dev libdb5.3++-dev \
+            libssl-dev \
+            libevent-dev \
+            libsqlite3-dev \
+            libminiupnpc-dev \
+            libzmq3-dev \
+            libfmt-dev \
+            qtbase5-dev qttools5-dev qttools5-dev-tools \
+            libqt5dbus5 libqt5network5 libqt5widgets5 \
+            python3
+
+      - name: Configure for Linux Qt
+        run: |
+          autoreconf -fi
+          ./configure \
+            --disable-tests \
+            --disable-bench \
+            --with-gui=qt5 \
+            --with-incompatible-bdb \
+            --enable-reduce-exports \
+            CXXFLAGS="-O2"
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p release-linux-qt
+          cp src/qt/nyc-qt release-linux-qt/
+          cp src/nycd src/nyc-cli src/nyc-tx release-linux-qt/
+          [ -f src/nyc-wallet ] && cp src/nyc-wallet release-linux-qt/ || true
+
+      - name: Create tarball
+        run: |
+          tar -czf newyorkcoin-linux-qt-x86_64.tar.gz -C release-linux-qt .
+
+      - name: Upload Linux Qt binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: NewYorkCoin-Core-Linux-Qt
+          path: newyorkcoin-linux-qt-x86_64.tar.gz
+          retention-days: 30
