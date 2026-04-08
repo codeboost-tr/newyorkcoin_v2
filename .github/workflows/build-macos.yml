@@ -35,6 +35,7 @@ jobs:
             --with-gui=qt5 \
             --with-boost=$(brew --prefix boost) \
             --with-boost-libdir=$(brew --prefix boost)/lib \
+            --with-boost-system=boost_system \
             --with-incompatible-bdb \
             CXXFLAGS="-O2"
 

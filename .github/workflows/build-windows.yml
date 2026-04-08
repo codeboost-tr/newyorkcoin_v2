@@ -50,7 +50,8 @@ jobs:
 
       - name: Configure for Windows cross-compile
         run: |
-          ./autogen.sh
+          # Bypass autogen.sh: autoreconf --force deletes ltmain.sh before LIBTOOLIZE=true can recreate it
+          autoreconf -fi
           CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site \
           ./configure \
             --prefix=/ \
