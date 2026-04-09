@@ -1275,15 +1275,37 @@ bool ReadRawBlockFromDisk(std::vector<uint8_t>& block, const CBlockIndex* pindex
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
-    int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
-    // Force block reward to zero when right shift is undefined.
-    if (halvings >= 64)
-        return 0;
+    // ── NewYorkCoin block subsidy ──────────────────────────────────────────
+    // Replicates the original GetNewYorkCoinBlockSubsidy() logic from the
+    // NewYorkCoinNYC/NewYorkCoin reference implementation.
+    //
+    // Post-AuxPoW era (height >= 4,800,000): fixed declining schedule.
+    // The original code branched on consensusParams.nHeightEffective == 4800000;
+    // here we use an absolute height check since our consensus params are not
+    // multi-height.
+    if (nHeight >= 4800000) {
+        const int hi = consensusParams.nSubsidyHalvingInterval; // 500,000
+        if (nHeight < 10 * hi) return  5000 * COIN; // 4,800,000 – 4,999,999
+        if (nHeight < 11 * hi) return  2500 * COIN; // 5,000,000 – 5,499,999
+        if (nHeight < 12 * hi) return  1250 * COIN; // 5,500,000 – 5,999,999
+        if (nHeight < 13 * hi) return   625 * COIN; // 6,000,000 – 6,499,999
+        if (nHeight < 14 * hi) return   100 * COIN; // 6,500,000 – 6,999,999
+        return 50 * COIN;                            // 7,000,000+
+    }
 
-    CAmount nSubsidy = 50 * COIN;
-    // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
-    nSubsidy >>= halvings;
-    return nSubsidy;
+    // Legacy random-reward era (height 0 – 4,799,999).
+    // The original code used a PRNG seeded from prevHash to pick a reward in
+    // [1, range] COIN.  We return the per-band maximum so that any historically
+    // mined block (whose coinbase ≤ actual random max ≤ band max) will pass the
+    // "coinbase pays too much" check.  New blocks are only mined in the
+    // post-AuxPoW era, so this branch is not hit for new block production.
+    if (nHeight < 100000) return 1000000 * COIN; // [1, 999999] + 1  ≈ 1 M NYC
+    if (nHeight < 200000) return  500000 * COIN; // [1, 499999] + 1  ≈ 500 K  NYC
+    if (nHeight < 300000) return  250000 * COIN; // [1, 249999] + 1  ≈ 250 K  NYC
+    if (nHeight < 400000) return  125000 * COIN; // [1, 124999] + 1  ≈ 125 K  NYC
+    if (nHeight < 500000) return   62500 * COIN; // [1,  62499] + 1  ≈  62.5 K NYC
+    if (nHeight < 600000) return   31250 * COIN; // [1,  31249] + 1  ≈  31.25 K NYC
+    return 10000 * COIN; // heights 600,000 – 4,799,999 (fixed at 10 K NYC)
 }
 
 CoinsViews::CoinsViews(

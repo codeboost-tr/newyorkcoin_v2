@@ -100,12 +100,18 @@ public:
         // ── BIP activation heights ──────────────────────────────────────────
         // P2SH / BIP16 enforced from block 0 on the NYC chain.
         consensus.BIP16Height  = 0;
-        // BIP34 (height in coinbase): required from genesis for v2.0 nodes.
-        consensus.BIP34Height  = 0;
+        // BIP34 (height in coinbase): the original NYC network used majority-vote
+        // activation, never a hardcoded buried height.  Setting INT_MAX here
+        // effectively disables the buried-height enforcement so that the ~4.8 M
+        // legacy v1 blocks (which predate AuxPoW and do NOT encode height in their
+        // coinbase) are accepted without triggering "bad-cb-height".
+        consensus.BIP34Height  = std::numeric_limits<int>::max();
         consensus.BIP34Hash    = uint256();
-        // CLTV (BIP65) and strict-DER (BIP66): safe to enforce from genesis.
-        consensus.BIP65Height  = 0;
-        consensus.BIP66Height  = 0;
+        // BIP65 (CLTV) and BIP66 (strict DER): likewise never buried on NYC.
+        // Use INT_MAX so that pre-AuxPoW v1/v2 blocks are not rejected as
+        // "bad-version" by the version check in ContextualCheckBlockHeader.
+        consensus.BIP65Height  = std::numeric_limits<int>::max();
+        consensus.BIP66Height  = std::numeric_limits<int>::max();
         // CSV (BIP68/112/113): NYC has not activated CSV; defer to far future.
         consensus.CSVHeight    = std::numeric_limits<int>::max();
         // SegWit: NYC has not activated SegWit; defer to far future.
