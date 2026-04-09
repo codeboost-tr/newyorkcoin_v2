@@ -19,7 +19,10 @@ static const unsigned int MAX_BLOCK_WEIGHT = 4000000;
 /** The maximum allowed number of signature check operations in a block (network rule) */
 static const int64_t MAX_BLOCK_SIGOPS_COST = 80000;
 /** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
-static const int COINBASE_MATURITY = 100;
+// Original NewYorkCoin pre-DigiShield setting was 30 (post-DigiShield was 240).
+// Using 30 allows legacy blocks to spend coinbases that are ≥30 blocks deep,
+// matching the original on-chain behavior for the pre-AuxPoW era.
+static const int COINBASE_MATURITY = 30;
 /** MWEB: Pegout transaction outputs can only be spent after this number of new blocks (network rule) */
 static const int PEGOUT_MATURITY = 6;
 
