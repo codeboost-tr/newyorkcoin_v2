@@ -145,10 +145,11 @@ bool CMessageHeader::IsCommandValid() const
 
 
 ServiceFlags GetDesirableServiceFlags(ServiceFlags services) {
+    // NYC: legacy nodes advertise only NODE_NETWORK; do not require NODE_WITNESS or NODE_MWEB.
     if ((services & NODE_NETWORK_LIMITED) && g_initial_block_download_completed) {
-        return ServiceFlags(NODE_NETWORK_LIMITED | NODE_WITNESS | NODE_MWEB);
+        return ServiceFlags(NODE_NETWORK_LIMITED);
     }
-    return ServiceFlags(NODE_NETWORK | NODE_WITNESS | NODE_MWEB);
+    return ServiceFlags(NODE_NETWORK);
 }
 
 void SetServiceFlagsIBDCache(bool state) {
