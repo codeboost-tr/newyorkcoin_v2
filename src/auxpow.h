@@ -23,13 +23,15 @@
  * It proves that the parent block's coinbase commits to this NYC block hash
  * and that the parent block meets NYC's PoW target.
  *
- * Wire format (inside CBlock, after the 80-byte header, before vtx):
- *   coinbaseTx   (CTransaction)
- *   parentBlock  (CBlockHeader - 80 bytes)
- *   vMerkleBranch  (vector<uint256>)
- *   nIndex         (int32)
- *   vChainMerkleBranch (vector<uint256>)
- *   nChainIndex    (int32)
+ * Wire format emitted by the original NewYorkCoin daemon
+ * (based on the Dogecoin-era CAuxPow : CMerkleTx inheritance):
+ *   coinbaseTx           (CTransaction)
+ *   hashBlock            (uint256  – parent block hash, legacy CMerkleTx field)
+ *   vMerkleBranch        (vector<uint256>  – coinbase merkle branch)
+ *   nIndex               (int32             – coinbase position, always 0)
+ *   vChainMerkleBranch   (vector<uint256>  – aux-block merkle branch)
+ *   nChainIndex          (int32)
+ *   parentBlock          (CBlockHeader 80 bytes)
  *
  * Merged-mining commitment in coinbase scriptSig:
  *   0xfabe6d6d  (4-byte magic)
@@ -45,6 +47,11 @@ public:
 
     /** The parent block header.  Its PoW hash must satisfy NYC's target. */
     CBlockHeader parentBlock;
+
+    /** Hash of the parent block.  Redundant with parentBlock.GetHash() but
+     *  present in the wire format for historical compatibility with the
+     *  original Dogecoin-era CMerkleTx serialisation. */
+    uint256 hashBlock;
 
     /** Merkle branch linking coinbaseTx hash to parentBlock.hashMerkleRoot. */
     std::vector<uint256> vMerkleBranch;
@@ -65,6 +72,10 @@ public:
     SERIALIZE_METHODS(CAuxPow, obj)
     {
         READWRITE(obj.coinbaseTx);
+        // hashBlock is the parent-block hash in the legacy CMerkleTx wire
+        // format; read/write it for round-trip compatibility with bootstrap
+        // data produced by the original NYC daemon.
+        READWRITE(obj.hashBlock);
         READWRITE(obj.vMerkleBranch);
         READWRITE(obj.nIndex);
         READWRITE(obj.vChainMerkleBranch);
