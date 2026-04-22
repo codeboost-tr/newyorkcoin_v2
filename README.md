@@ -15,9 +15,9 @@ NewYorkCoin Core v2.0
 NewYorkCoin (NYC) is a peer-to-peer digital currency originally launched in
 March 2014. It features:
 
-- **30-second block targets** with DarkGravityWave v3 (DGW v3) difficulty
+- **30-second block targets** with Kimoto Gravity Well (KGW) difficulty
   retargeting per block
-- **Scrypt proof-of-work** with AuxPoW (merged mining) support — chain ID **56**
+- **Scrypt proof-of-work** with AuxPoW (merged mining) support — chain ID **1985** (0x07C1)
 - **Legacy P2PKH addresses** starting with `R` (PUBKEY_ADDRESS = 60)
 - **Ticker symbol**: NYC
 - **P2P port**: 17020 (mainnet), 27020 (testnet)
@@ -37,32 +37,68 @@ itself a fork of [Bitcoin Core](https://github.com/bitcoin/bitcoin).
 
 ### Goals
 
-1. **Restore a maintained full-node client** -- the original NYC 1.x codebase is
+#### Completed
+
+1. **Restore a maintained full-node client** — the original NYC 1.x codebase is
    based on Bitcoin Core 0.10 (2015). v2.0 brings the codebase forward to a
    modern base (0.21.x) with active upstream security backports.
 
-2. **Full NYC network compatibility** -- correct network magic
+2. **Full NYC network compatibility** — correct network magic
    (`0xCF 0xFE 0xC9 0xCC`), protocol version 70012, and chain parameters
    matching the live NYC mainnet (genesis block, ports, address prefixes).
 
-3. **Clean branding** -- all Litecoin/Bitcoin strings replaced with
+3. **Clean branding** — all Litecoin/Bitcoin strings replaced with
    NewYorkCoin/NYC throughout the Qt GUI, RPC responses, signed-message magic,
    URI handling, and user-facing text.
 
-4. **Legacy address generation** -- wallet defaults to `OutputType::LEGACY` so
+4. **Legacy address generation** — wallet defaults to `OutputType::LEGACY` so
    receive addresses begin with `R`, matching addresses used on exchanges and
    the original 1.x wallet.
 
-5. **Merged mining (AuxPoW)** -- NYC uses chain ID 56 and follows the
-   Namecoin/Dogecoin AuxPoW protocol.  Pools can merge-mine NYC alongside any
-   other Scrypt coin.  The `getauxblock` RPC provides the work interface.
+5. **Merged mining (AuxPoW)** — NYC uses chain ID **1985** (0x07C1) and follows
+   the Namecoin/Dogecoin AuxPoW protocol. Pools can merge-mine NYC alongside any
+   other Scrypt coin. The `getauxblock` RPC provides the work interface.
 
-6. **Android companion wallet** -- the
+6. **Android companion wallet** — the
    [nyc-openwallet-android](https://github.com/openwalletGH/openwallet-android)
    project provides a lightweight SPV wallet that can connect to this full node.
 
-7. **Long-term**: add DNS seed infrastructure, checkpoints, and eventually move
-   consensus rules to a clean, audited state ready for community mainnet use.
+7. **ElectrumX server** — public ElectrumX endpoint at `electrum.paywith.nyc:50002`
+   (SSL) for lightweight wallet connectivity without running a full node.
+
+#### Roadmap
+
+8. **Rosetta API** — implement the
+   [Coinbase Rosetta](https://docs.cloud.coinbase.com/rosetta/docs/welcome)
+   specification to enable exchange listings and block explorer integrations.
+   A Rosetta middleware service (`mesh-newyorkcoin`) is already scaffolded in
+   this repository.
+
+9. **Atomic Swaps** — cross-chain atomic swaps with Bitcoin, Litecoin, and other
+   HTLC-compatible chains, enabling trustless peer-to-peer NYC exchanges without
+   a centralised intermediary.
+
+10. **NYC Ordinals** — an ordinals/inscription protocol for the NYC chain,
+    analogous to Bitcoin Ordinals. NYC's 30-second blocks and low fees make it
+    well-suited for high-throughput inscription use-cases.
+
+11. **SegWit & Taproot addresses** — activate SegWit (P2WPKH/P2WSH, bech32
+    `nyc1q...`) and Taproot (P2TR, bech32m `nyc1p...`) to reduce transaction fees,
+    enable more complex scripts, and lay the groundwork for the Lightning Network.
+
+12. **MimbleWimble / privacy** — integrate a MimbleWimble extension block
+    (similar to Litecoin's MWEB implementation) to provide optional
+    confidential transactions with hidden amounts and enhanced sender/receiver
+    privacy, while remaining compatible with the existing UTXO set.
+
+13. **Custom OP_CODE scripting** — extend NYC's script interpreter with
+    domain-specific opcodes useful for DeFi-style contracts, cross-chain
+    commitments, and ordinals metadata — building on the Taproot script path
+    infrastructure.
+
+14. **DNS seed infrastructure, checkpoints, and security audit** — add reliable
+    DNS seeds, embed mainnet checkpoints, and commission a third-party security
+    audit before recommending production use.
 
 ### Fork Lineage
 
@@ -79,9 +115,9 @@ Key departures from the Litecoin base:
 | P2P port | 9333 | **17020** |
 | PUBKEY_ADDRESS | 48 (`L`) | **60 (`R`)** |
 | Block target | 2.5 min | **30 seconds** |
-| Difficulty algo | KGW / DGW | **DGW v3** |
+| Difficulty algo | KGW / DGW | **KGW (Kimoto Gravity Well)** |
 | bech32 HRP | `ltc` | **`nyc`** |
-| Merged mining | No | **AuxPoW (chain ID 56)** |
+| Merged mining | No | **AuxPoW (chain ID 1985 / 0x07C1)** |
 
 ---
 
@@ -136,10 +172,10 @@ NewYorkCoin Core v2.0 supports **merge mining** via the AuxPoW protocol
 
 | Parameter | Value |
 |-----------|-------|
-| Chain ID | **56** (0x38) |
+| Chain ID | **1985** (0x07C1) |
 | PoW algo | Scrypt (1024/1/1) |
 | Block version flag | `0x100` (bit 8 of nVersion) |
-| nVersion of AuxPoW block | `(56 << 16) \| 0x100 \| base` = `0x00380101` |
+| nVersion of AuxPoW block | `(1985 << 16) \| 0x100 \| base` = `0x07C10101` |
 
 ### How it works
 
@@ -165,7 +201,7 @@ The returned JSON contains:
 | Field | Description |
 |-------|-------------|
 | `hash` | NYC block hash to embed in the parent coinbase |
-| `chainid` | Always 56 |
+| `chainid` | Always 1985 (0x07C1) |
 | `previousblockhash` | Current chain tip |
 | `coinbasevalue` | Total block reward available (satoshis) |
 | `bits` | Compact difficulty target |
@@ -180,7 +216,7 @@ OP_RETURN  (or anywhere in scriptSig)
   <chainRoot>         -- 32 bytes: chain merkle tree root (= NYC block hash
                          when mining NYC alone, i.e. nSize=1)
   <nSize>             -- uint32 LE: 2^(chain branch height), 1 for solo NYC
-  <nNonce>            -- uint32 LE: chainId % nSize, 0 for solo NYC (56%1=0)
+  <nNonce>            -- uint32 LE: chainId % nSize, 0 for solo NYC (1985%1=0)
 ```
 
 ---
@@ -198,17 +234,28 @@ OP_RETURN  (or anywhere in scriptSig)
 
 | Feature | Status |
 |---------|--------|
-| Builds from source (Linux) | OK |
-| Connects to NYC mainnet peers | OK |
-| Correct `R` address generation | OK |
-| NYC branding throughout GUI | OK |
-| DGW v3 difficulty algorithm | OK |
-| Full chain sync | In testing |
-| DNS seed servers | Offline -- use addnode |
-| AuxPoW merged mining | OK — chain ID 56, `getauxblock` RPC |
-| Checkpoints | Planned |
-| Windows / macOS release binaries | Planned |
-| Security audit | Not yet performed |
+| Builds from source (Linux) | ✅ OK |
+| Builds from source (Windows x64) | ✅ OK (cross-compiled via MinGW + depends/) |
+| Builds from source (macOS) | ✅ OK |
+| Connects to NYC mainnet peers | ✅ OK |
+| Correct `R` address generation | ✅ OK |
+| NYC branding throughout GUI | ✅ OK |
+| KGW difficulty algorithm | ✅ OK |
+| Full chain sync | ✅ Synced (height ~12.6M, April 2026) |
+| AuxPoW merged mining | ✅ OK — chain ID 1985 (0x07C1), `getauxblock` RPC |
+| ElectrumX public endpoint | ✅ `electrum.paywith.nyc:50002` (SSL) |
+| Release binaries (Linux/Windows/macOS) | ✅ Available — see [Releases](https://github.com/jamesburrell2/newyorkcoin_v2/releases) |
+| SHA256 / MD5 checksums for releases | ✅ Included in each release |
+| DNS seed servers | ⚠️ Offline — use `addnode` |
+| Checkpoints | 🔲 Planned |
+| Rosetta API | 🔲 In progress (mesh-newyorkcoin scaffolded) |
+| Atomic Swaps | 🔲 Planned |
+| NYC Ordinals | 🔲 Planned |
+| SegWit activation | 🔲 Planned |
+| Taproot activation | 🔲 Planned (after SegWit) |
+| MimbleWimble extension blocks | 🔲 Planned |
+| Custom OP_CODE scripting | 🔲 Planned (post-Taproot) |
+| Security audit | ❌ Not yet performed |
 
 ---
 
