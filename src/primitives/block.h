@@ -126,7 +126,13 @@ public:
         READWRITEAS(CBlockHeader, obj);
         if (obj.IsAuxpow()) {
             SER_READ(obj, obj.auxpow = std::make_shared<CAuxPow>());
-            READWRITE(*obj.auxpow);
+            // Guard: auxpow may be null on the write path if this CBlock was
+            // constructed from a bare CBlockHeader (e.g. in headers messages).
+            // In that case skip the AuxPoW field; the peer will see a
+            // version-flagged header with no proof, which is protocol-incorrect
+            // for old NYC nodes, but prevents a null-pointer crash until we
+            // add full block reads to the getheaders send path.
+            if (obj.auxpow) READWRITE(*obj.auxpow);
         } else {
             SER_READ(obj, obj.auxpow.reset());
         }

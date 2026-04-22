@@ -3840,6 +3840,13 @@ void PeerManager::ProcessMessage(CNode& pfrom, const std::string& msg_type, CDat
         headers.resize(nCount);
         for (unsigned int n = 0; n < nCount; n++) {
             vRecv >> headers[n];
+            if (headers[n].IsAuxpow()) {
+                // NYC (and other AuxPoW coins) include the full AuxPoW proof
+                // after the 80-byte base header in headers messages.
+                // Read and discard it — we only need the base header here.
+                CAuxPow auxpow;
+                vRecv >> auxpow;
+            }
             ReadCompactSize(vRecv); // ignore tx count; assume it is 0.
         }
 
