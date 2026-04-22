@@ -6,15 +6,22 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 //
-// DarkGravityWave v3 difficulty algorithm.
+// Difficulty adjustment.
 //
-// Based on the Dash implementation (src/pow.cpp, ~2014-2021 Dash Core Developers).
-// DGW performs a per-block difficulty adjustment using an exponentially-weighted
-// moving average over the past 24 blocks.
+// NewYorkCoin uses Kimoto Gravity Well (KGW) for difficulty retargeting.
+// GetNextWorkRequired currently trusts the block's own nBits field and relies
+// on CheckProofOfWork to enforce that the block hash satisfies that target.
+//
+// The DarkGravityWave (DGW) function below is retained for reference and
+// future use during the migration to a native KGW implementation, but it is
+// NOT called from GetNextWorkRequired on the mainnet code path.
+//
+// TODO: implement KGW natively (arith_uint256 arithmetic, no CBigNum dependency)
+// to fully enforce the correct difficulty curve and reject dishonest nBits.
 //
 // References:
-//   https://github.com/dashpay/dash/blob/master/src/pow.cpp
-//   https://github.com/NewYorkCoinNYC/newyorkcoin/blob/master/src/pow.cpp
+//   https://github.com/NewYorkCoinNYC/newyorkcoin/blob/master/src/pow.cpp  (KGW original)
+//   https://github.com/dashpay/dash/blob/master/src/pow.cpp                (DGW reference)
 //
 
 #include <pow.h>

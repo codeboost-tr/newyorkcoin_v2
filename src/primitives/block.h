@@ -23,12 +23,12 @@ class CAuxPow;
 // nVersion layout for an AuxPoW-mined block:
 //   bits  0-15 : base version (e.g. 1)
 //   bit      8 : BLOCK_VERSION_AUXPOW flag — set when block carries auxpow
-//   bits 16-31 : chain ID   (NYC uses 56, stored via nVersion >> 16)
+//   bits 16-31 : chain ID   (NYC uses 1985, stored via nVersion >> 16)
 //
-// Example NYC AuxPoW block: nVersion = (1985 << 16) | 0x100 | 3 = 0x07C1010300380101
+// Example NYC AuxPoW block: nVersion = (1985 << 16) | 0x100 | 3 = 0x07C10103
 //
 static const int32_t BLOCK_VERSION_AUXPOW      = (1 << 8);   // 0x100
-static const int32_t BLOCK_VERSION_CHAIN_ID    = 1985;        // NYC chain ID (0x07C1) — matches historical merged-mined blocksC chain ID
+static const int32_t BLOCK_VERSION_CHAIN_ID    = 1985;        // NYC chain ID (0x07C1) — matches historical merged-mined blocks
 static const int32_t BLOCK_VERSION_CHAIN_START = (1 << 16);   // 0x10000
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
