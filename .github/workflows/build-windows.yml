@@ -3,7 +3,6 @@ name: Windows Build
 on:
   push:
     branches: [ nyc-core-v2.0 ]
-    tags:     [ 'v*' ]
   workflow_dispatch:
 
 jobs:

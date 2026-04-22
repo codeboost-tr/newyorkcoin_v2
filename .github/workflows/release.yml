@@ -1,0 +1,355 @@
+name: Release Builds
+
+# Triggers on any v* tag push, or manually so you can retrigger for an existing tag.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing release tag to build against (e.g. v2.0.1)'
+        required: true
+        default: 'v2.0.1'
+
+# Allow the publish job to write release assets
+permissions:
+  contents: write
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Shared helper: each job resolves the release tag the same way
+# ─────────────────────────────────────────────────────────────────────────────
+
+jobs:
+
+  # ── 1. Linux CLI (daemon + tools, no Qt) ───────────────────────────────────
+  linux-cli:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y \
+            build-essential libtool autotools-dev automake pkg-config bsdmainutils \
+            libboost-system-dev libboost-filesystem-dev libboost-thread-dev libboost-test-dev \
+            libdb5.3-dev libdb5.3++-dev libssl-dev libevent-dev libsqlite3-dev \
+            libminiupnpc-dev libzmq3-dev libfmt-dev python3
+
+      - name: Configure
+        run: |
+          autoreconf -fi
+          ./configure \
+            --disable-tests --disable-bench \
+            --with-gui=no \
+            --with-incompatible-bdb \
+            --enable-reduce-exports \
+            CXXFLAGS="-O2"
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Package
+        id: pkg
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+          NAME="newyorkcoin-${TAG}-linux-x86_64"
+          mkdir -p "$NAME"
+          cp src/nycd src/nyc-cli src/nyc-tx "$NAME/"
+          [ -f src/nyc-wallet ] && cp src/nyc-wallet "$NAME/" || true
+          tar -czf "${NAME}.tar.gz" "$NAME/"
+          echo "artifact=${NAME}.tar.gz" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-cli
+          path: ${{ steps.pkg.outputs.artifact }}
+
+  # ── 2. Linux Qt ────────────────────────────────────────────────────────────
+  linux-qt:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y \
+            build-essential libtool autotools-dev automake pkg-config bsdmainutils \
+            libboost-system-dev libboost-filesystem-dev libboost-thread-dev libboost-test-dev \
+            libdb5.3-dev libdb5.3++-dev libssl-dev libevent-dev libsqlite3-dev \
+            libminiupnpc-dev libzmq3-dev libfmt-dev \
+            qtbase5-dev qttools5-dev qttools5-dev-tools \
+            libqt5dbus5 libqt5network5 libqt5widgets5 python3
+
+      - name: Configure
+        run: |
+          autoreconf -fi
+          ./configure \
+            --disable-tests --disable-bench \
+            --with-gui=qt5 \
+            --with-incompatible-bdb \
+            --enable-reduce-exports \
+            CXXFLAGS="-O2"
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Package
+        id: pkg
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+          NAME="newyorkcoin-${TAG}-linux-qt-x86_64"
+          mkdir -p "$NAME"
+          cp src/qt/nyc-qt "$NAME/"
+          cp src/nycd src/nyc-cli src/nyc-tx "$NAME/"
+          [ -f src/nyc-wallet ] && cp src/nyc-wallet "$NAME/" || true
+          tar -czf "${NAME}.tar.gz" "$NAME/"
+          echo "artifact=${NAME}.tar.gz" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-qt
+          path: ${{ steps.pkg.outputs.artifact }}
+
+  # ── 3. Windows x64 (cross-compiled via MinGW + NSIS installer) ─────────────
+  windows:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 240
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Install cross-compile toolchain and NSIS
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y \
+            build-essential libtool autotools-dev automake pkg-config bsdmainutils curl \
+            gcc-10 g++-10 \
+            g++-mingw-w64-x86-64 mingw-w64-x86-64-dev \
+            nsis python3
+
+      - name: Set compiler alternatives
+        run: |
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 10 \
+            --slave /usr/bin/g++ g++ /usr/bin/g++-10
+          sudo update-alternatives --set gcc /usr/bin/gcc-10
+          sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+          sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+
+      - name: Cache depends
+        uses: actions/cache@v4
+        with:
+          path: depends/built
+          key: depends-win64-${{ hashFiles('depends/packages/*.mk', 'depends/Makefile') }}
+          restore-keys: depends-win64-
+
+      - name: Build depends for Windows
+        run: make -C depends -j$(nproc) HOST=x86_64-w64-mingw32
+
+      - name: Configure for Windows
+        run: |
+          autoreconf -fi
+          CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site \
+          ./configure \
+            --prefix=/ \
+            --host=x86_64-w64-mingw32 \
+            --disable-tests --disable-bench \
+            --with-gui=qt5 \
+            --enable-reduce-exports \
+            CXXFLAGS="-O2"
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Create NSIS installer
+        run: make deploy
+
+      - name: Package
+        id: pkg
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+          NAME="newyorkcoin-${TAG}-win64"
+          mkdir -p "$NAME"
+          # Grab installer (.exe from make deploy) and individual CLI binaries
+          find . -maxdepth 4 -name "*setup*.exe" | head -1 | xargs -I{} cp {} "$NAME/" 2>/dev/null || true
+          for bin in src/nycd.exe src/nyc-cli.exe src/nyc-tx.exe src/nyc-wallet.exe src/qt/nyc-qt.exe; do
+            [ -f "$bin" ] && cp "$bin" "$NAME/" || true
+          done
+          zip -r "${NAME}.zip" "$NAME/"
+          echo "artifact=${NAME}.zip" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: ${{ steps.pkg.outputs.artifact }}
+
+  # ── 4. macOS Qt (native runner, produces DMG via make deploy) ──────────────
+  macos-qt:
+    runs-on: macos-latest
+    timeout-minutes: 120
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Install dependencies
+        run: |
+          brew install automake libtool pkg-config boost openssl@3 \
+            miniupnpc qt@5 qrencode libnatpmp libevent berkeley-db@4
+
+      - name: Configure
+        run: |
+          export LIBTOOLIZE="$(brew --prefix libtool)/bin/glibtoolize"
+          autoreconf -fi
+          export PKG_CONFIG_PATH="$(brew --prefix qt@5)/lib/pkgconfig:$(brew --prefix libevent)/lib/pkgconfig:$(brew --prefix miniupnpc)/lib/pkgconfig"
+          ./configure \
+            --disable-tests --disable-bench \
+            --with-gui=qt5 \
+            --with-boost="$(brew --prefix boost)" \
+            --with-boost-libdir="$(brew --prefix boost)/lib" \
+            --with-incompatible-bdb \
+            CXXFLAGS="-O2" \
+            CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$(brew --prefix berkeley-db@4)/include -I$(brew --prefix boost)/include -I$(brew --prefix miniupnpc)/include" \
+            LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$(brew --prefix berkeley-db@4)/lib -L$(brew --prefix boost)/lib"
+
+      - name: Build
+        run: make -j$(sysctl -n hw.logicalcpu)
+
+      - name: Create DMG
+        run: make deploy || echo "make deploy failed; will package binaries directly"
+
+      - name: Package
+        id: pkg
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+          NAME="newyorkcoin-${TAG}-macos"
+          # Prefer the DMG produced by make deploy
+          DMG=$(find . -maxdepth 4 -name "*.dmg" | head -1)
+          if [ -n "$DMG" ]; then
+            cp "$DMG" "${NAME}.dmg"
+            echo "artifact=${NAME}.dmg" >> "$GITHUB_OUTPUT"
+          else
+            mkdir -p "$NAME"
+            [ -f src/qt/nyc-qt ] && cp src/qt/nyc-qt "$NAME/" || true
+            cp src/nycd src/nyc-cli src/nyc-tx "$NAME/" 2>/dev/null || true
+            [ -f src/nyc-wallet ] && cp src/nyc-wallet "$NAME/" || true
+            tar -czf "${NAME}.tar.gz" "$NAME/"
+            echo "artifact=${NAME}.tar.gz" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-qt
+          path: ${{ steps.pkg.outputs.artifact }}
+
+  # ── 5. Publish: compute hashes and attach all artifacts to the release ──────
+  publish-release:
+    needs: [linux-cli, linux-qt, windows, macos-qt]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+
+      - name: Flatten into release-files/
+        run: |
+          mkdir -p release-files
+          find dist/ -type f | while read f; do
+            mv "$f" release-files/
+          done
+          echo "=== Release artifacts ==="
+          ls -lh release-files/
+
+      - name: Compute SHA256 and MD5 hashes
+        run: |
+          cd release-files
+          sha256sum * > SHA256SUMS.txt
+          md5sum    * > MD5SUMS.txt
+          echo ""
+          echo "=== SHA256SUMS ==="
+          cat SHA256SUMS.txt
+          echo ""
+          echo "=== MD5SUMS ==="
+          cat MD5SUMS.txt
+
+      - name: Ensure release exists (create if missing)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+          gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1 || \
+            gh release create "$TAG" \
+              --repo "${{ github.repository }}" \
+              --title "NewYorkCoin Core $TAG" \
+              --notes "Release $TAG — binaries attached by CI." \
+              --target "${{ github.sha }}"
+
+      - name: Upload all files to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+          cd release-files
+          gh release upload "$TAG" \
+            --repo "${{ github.repository }}" \
+            --clobber \
+            *
