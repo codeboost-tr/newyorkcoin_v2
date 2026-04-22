@@ -16,7 +16,7 @@ class CBlockHeader;
 class CBlockIndex;
 class uint256;
 
-/** Return the next required proof-of-work target using DarkGravityWave v3. */
+/** Return the next required proof-of-work target using Kimoto Gravity Well (KGW). */
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast,
                                   const CBlockHeader* pblock,
                                   const Consensus::Params&);
