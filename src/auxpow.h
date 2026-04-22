@@ -35,9 +35,9 @@
  *
  * Merged-mining commitment in coinbase scriptSig:
  *   0xfabe6d6d  (4-byte magic)
- *   chainRoot   (32 bytes - hash or root of chain merkle tree)
+ *   chainRoot   (32 bytes - chain merkle root in REVERSED byte order)
  *   nSize       (uint32 LE - must equal 2^vChainMerkleBranch.size())
- *   nNonce      (uint32 LE - must equal nChainId % nSize)
+ *   nNonce      (uint32 LE - arbitrary; determines slot via GetExpectedIndex)
  */
 class CAuxPow
 {
@@ -64,7 +64,7 @@ public:
     std::vector<uint256> vChainMerkleBranch;
 
     /** Index of the NYC block hash in the chain hash merkle tree.
-     *  Must equal nChainId % (1 << vChainMerkleBranch.size()). */
+     *  Must equal GetExpectedIndex(nNonce, nChainId, vChainMerkleBranch.size()). */
     int nChainIndex;
 
     CAuxPow() : nIndex(0), nChainIndex(0) {}
@@ -98,6 +98,17 @@ public:
     {
         return parentBlock.GetPoWHash();
     }
+
+    /**
+     * Calculate the expected index in the chain hash merkle tree.
+     * Uses the same LCG pseudo-random formula as the original Namecoin /
+     * Dogecoin / NYC merged-mining specification.
+     * @param nNonce    The nNonce value from the coinbase commitment.
+     * @param nChainId  The chain ID.
+     * @param h         The chain merkle branch height (log2 of tree size).
+     * @return The expected nChainIndex for a valid auxpow.
+     */
+    static int GetExpectedIndex(unsigned int nNonce, int nChainId, unsigned int h);
 };
 
 #endif // BITCOIN_AUXPOW_H
