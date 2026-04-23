@@ -205,18 +205,35 @@ jobs:
           TAG=${{ steps.tag.outputs.tag }}
           NAME="newyorkcoin-${TAG}-win64"
           mkdir -p "$NAME"
-          # Grab installer (.exe from make deploy) and individual CLI binaries
-          find . -maxdepth 4 -name "*setup*.exe" | head -1 | xargs -I{} cp {} "$NAME/" 2>/dev/null || true
+          # Find the NSIS installer produced by make deploy (may be named *setup*.exe or *Setup*.exe)
+          INSTALLER=$(find . -maxdepth 4 \( -name "*setup*.exe" -o -name "*Setup*.exe" \) ! -path "*/src/*" | head -1)
+          if [ -n "$INSTALLER" ]; then
+            INST_DEST="newyorkcoin-${TAG}-win64-qt-setup.exe"
+            cp "$INSTALLER" "$INST_DEST"
+            cp "$INSTALLER" "$NAME/"
+            echo "installer=$INST_DEST" >> "$GITHUB_OUTPUT"
+          else
+            echo "installer=" >> "$GITHUB_OUTPUT"
+          fi
+          # Include individual binaries in the zip too
           for bin in src/nycd.exe src/nyc-cli.exe src/nyc-tx.exe src/nyc-wallet.exe src/qt/nyc-qt.exe; do
             [ -f "$bin" ] && cp "$bin" "$NAME/" || true
           done
           zip -r "${NAME}.zip" "$NAME/"
           echo "artifact=${NAME}.zip" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload Windows CLI+Qt zip
+        uses: actions/upload-artifact@v4
         with:
           name: windows
           path: ${{ steps.pkg.outputs.artifact }}
+
+      - name: Upload Windows Qt installer (NSIS .exe)
+        if: steps.pkg.outputs.installer != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-qt
+          path: ${{ steps.pkg.outputs.installer }}
 
   # ── 4. macOS Qt (native runner, produces DMG via make deploy) ──────────────
   macos-qt:
