@@ -256,7 +256,11 @@ jobs:
           BOOST_LIB="$(brew --prefix boost)/lib"
           if [ ! -f "$BOOST_LIB/libboost_system.a" ] && \
              [ ! -f "$BOOST_LIB/libboost_system.dylib" ]; then
-            ar rcs "$BOOST_LIB/libboost_system.a"
+            # BSD ar (macOS) requires at least one object file; GNU ar does not.
+            # Compile a minimal stub object then archive it.
+            echo 'void boost_system_stub(void){}' | \
+              clang -x c - -c -o /tmp/boost_system_stub.o
+            ar rcs "$BOOST_LIB/libboost_system.a" /tmp/boost_system_stub.o
           fi
 
           export PKG_CONFIG_PATH="$(brew --prefix qt@5)/lib/pkgconfig:$(brew --prefix libevent)/lib/pkgconfig:$(brew --prefix miniupnpc)/lib/pkgconfig"
