@@ -186,13 +186,12 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nStartHeight  = 14000000;
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nTimeoutHeight = 16000000;
 
-        // MWEB (MimbleWimble Extension Blocks): NYC does not use MimbleWimble.
-        // Bit 4 is reserved; keep permanently inactive.
+        // MWEB (MimbleWimble Extension Blocks): activated after Taproot signaling
+        // begins. Miners signal on bit 4 between heights 15,000,000–17,000,000.
+        // Threshold: 2160/2880 blocks per period (same as Taproot).
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].bit           = 4;
-        consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nStartHeight  =
-            std::numeric_limits<int>::max() / 2;
-        consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nTimeoutHeight =
-            std::numeric_limits<int>::max() / 2;
+        consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nStartHeight  = 15000000;
+        consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nTimeoutHeight = 17000000;
 
         // ── Chain work / assume-valid ────────────────────────────────────────
         // Set to zero for Phase 2 clean start. Update before mainnet release.
