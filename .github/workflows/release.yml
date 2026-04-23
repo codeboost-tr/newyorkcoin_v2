@@ -337,11 +337,7 @@ jobs:
   # ── 5. Publish: compute hashes and attach all artifacts to the release ──────
   publish-release:
     needs: [linux-cli, linux-qt, windows, macos-qt]
-    if: >
-      always() &&
-      needs.linux-cli.result == 'success' &&
-      needs.linux-qt.result  == 'success' &&
-      needs.windows.result   == 'success'
+    if: always() && needs.linux-cli.result == 'success' && needs.linux-qt.result == 'success' && needs.windows.result == 'success'
     runs-on: ubuntu-22.04
     permissions:
       contents: write
