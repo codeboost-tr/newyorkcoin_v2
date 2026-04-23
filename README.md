@@ -44,7 +44,7 @@ itself a fork of [Bitcoin Core](https://github.com/bitcoin/bitcoin).
    modern base (0.21.x) with active upstream security backports.
 
 2. **Full NYC network compatibility** — correct network magic
-   (`0xCF 0xFE 0xC9 0xCC`), protocol version 70012, and chain parameters
+   (`0xC0 0xC0 0xC0 0xC0`), protocol version 70012, and chain parameters
    matching the live NYC mainnet (genesis block, ports, address prefixes).
 
 3. **Clean branding** — all Litecoin/Bitcoin strings replaced with
@@ -66,30 +66,37 @@ itself a fork of [Bitcoin Core](https://github.com/bitcoin/bitcoin).
 7. **ElectrumX server** — public ElectrumX endpoint at `electrum.paywith.nyc:50002`
    (SSL) for lightweight wallet connectivity without running a full node.
 
-#### Roadmap
-
-8. **Rosetta API** — implement the
+8. **Rosetta API** — the
    [Coinbase Rosetta](https://docs.cloud.coinbase.com/rosetta/docs/welcome)
-   specification to enable exchange listings and block explorer integrations.
-   A Rosetta middleware service (`mesh-newyorkcoin`) is already scaffolded in
-   this repository.
+   middleware service (`mesh-newyorkcoin`) is **deployed** on the public VPS
+   at `http://74.208.146.8:8081`.  It runs in External RPC mode, connecting to
+   the local `nycd` node via HTTP Basic Auth without managing its own daemon.
+   Endpoints: `/network/list`, `/network/status`, `/block`, `/account/balance`,
+   `/mempool`, and `/construction/*`.
 
-9. **Atomic Swaps** — cross-chain atomic swaps with Bitcoin, Litecoin, and other
+#### In Progress
+
+9. **MimbleWimble (MWEB)** — MimbleWimble extension blocks are **scheduled for
+   activation** via BIP9 bit 4 miner signaling between blocks
+   **15,000,000 – 17,000,000**.  The full Litecoin MWEB implementation
+   (source files under `src/mweb/`) is present and compiled in; the MWEB
+   bech32 HRP is `nycmweb`.  Miners must signal ≥ 2160 of any 2880-block
+   period within that window to lock in.  The signaling window opens at block
+   15,000,000 (estimated ~Dec 2026).
+
+#### Planned
+
+10. **Atomic Swaps** — cross-chain atomic swaps with Bitcoin, Litecoin, and other
    HTLC-compatible chains, enabling trustless peer-to-peer NYC exchanges without
    a centralised intermediary.
 
-10. **NYC Ordinals** — an ordinals/inscription protocol for the NYC chain,
+11. **NYC Ordinals** — an ordinals/inscription protocol for the NYC chain,
     analogous to Bitcoin Ordinals. NYC's 30-second blocks and low fees make it
     well-suited for high-throughput inscription use-cases.
 
-11. **SegWit & Taproot addresses** — activate SegWit (P2WPKH/P2WSH, bech32
+12. **SegWit & Taproot addresses** — activate SegWit (P2WPKH/P2WSH, bech32
     `nyc1q...`) and Taproot (P2TR, bech32m `nyc1p...`) to reduce transaction fees,
     enable more complex scripts, and lay the groundwork for the Lightning Network.
-
-12. **MimbleWimble / privacy** — integrate a MimbleWimble extension block
-    (similar to Litecoin's MWEB implementation) to provide optional
-    confidential transactions with hidden amounts and enhanced sender/receiver
-    privacy, while remaining compatible with the existing UTXO set.
 
 13. **Custom OP_CODE scripting** — extend NYC's script interpreter with
     domain-specific opcodes useful for DeFi-style contracts, cross-chain
@@ -111,7 +118,7 @@ Key departures from the Litecoin base:
 | Parameter | Litecoin | NewYorkCoin Core v2.0 |
 |-----------|----------|----------------------|
 | Protocol version | 70017 | **70012** |
-| Network magic | `0xFB 0xC0 0xB6 0xDB` | **`0xCF 0xFE 0xC9 0xCC`** |
+| Network magic | `0xFB 0xC0 0xB6 0xDB` | **`0xC0 0xC0 0xC0 0xC0`** |
 | P2P port | 9333 | **17020** |
 | PUBKEY_ADDRESS | 48 (`L`) | **60 (`R`)** |
 | Block target | 2.5 min | **30 seconds** |
@@ -132,9 +139,9 @@ unaffected until each height is reached.
 | P2SH | BIP16 | **0** (genesis) | March 2014 | Always active |
 | CSV (relative lock-times) | BIP68, 112, 113 | **13,000,000** | ~Aug 2026 | ~138 days above current tip (~12.6M) |
 | SegWit | BIP141, 143, 147 | **13,500,000** | ~Sep 2026 | Enables `nyc1q...` bech32 addresses; legacy wallets unaffected |
-| Taproot | BIP340, 341, 342 | BIP9 bit 2 signaling | ~Nov 2026+ | Requires SegWit; 75% of 2880-block window (~1 day) to lock in; signal window blocks 14,000,000–16,000,000 |
+| Taproot | BIP340, 341, 342 | BIP9 bit 2, blocks 14,000,000–16,000,000 | ~Nov 2026+ | Requires SegWit; 75% of 2880-block window to lock in |
+| MWEB (MimbleWimble) | — | BIP9 bit 4, blocks **15,000,000–17,000,000** | ~Dec 2026+ | Overlaps Taproot window; same 75% threshold; HRP `nycmweb` |
 | BIP34 / BIP65 / BIP66 | — | `INT_MAX` (deferred) | TBD | Requires miners to change coinbase format; will be coordinated in a v2.1 release |
-| MimbleWimble (MWEB) | — | **Disabled** | — | NYC does not use MimbleWimble extension blocks |
 
 ### Miner confirmation window
 
@@ -143,6 +150,10 @@ unaffected until each height is reached.
 
 So Taproot locks in when ≥ 2160 of any rolling 2880-block window within
 blocks 14,000,000 – 16,000,000 signal BIP9 bit 2.
+
+Similarly, MWEB locks in when ≥ 2160 of any rolling 2880-block window within
+blocks 15,000,000 – 17,000,000 signal BIP9 bit 4.  Both windows can be
+signaled simultaneously (different bits).
 
 ---
 
@@ -163,10 +174,10 @@ sudo apt-get install build-essential libtool autotools-dev automake pkg-config \
   libminiupnpc-dev libzmq3-dev libqt5gui5 libqt5core5a libqt5dbus5 \
   qttools5-dev qttools5-dev-tools libdb5.3++-dev
 
-# Configure and build
+# Configure and build (daemon + GUI)
 ./autogen.sh
 ./configure --with-gui=qt5
-make -j4
+make -j$(nproc)
 
 # Binaries produced:
 #   src/nycd           (daemon)
@@ -174,6 +185,28 @@ make -j4
 #   src/qt/nyc-qt      (Qt GUI wallet)
 #   src/nyc-tx         (transaction utility)
 #   src/nyc-wallet     (wallet utility)
+```
+
+> **Note (Ubuntu 22.04+ / 24.04):** If `./autogen.sh` fails with
+> `ltmain.sh: No such file or directory`, run these two commands instead:
+> ```bash
+> libtoolize --copy --force
+> autoreconf -fiv
+> ```
+> Then proceed with `./configure` as normal.
+
+**Daemon-only build** (no Qt, no wallet — suitable for headless VPS):
+
+```bash
+libtoolize --copy --force
+autoreconf -fiv
+./configure --without-gui --disable-wallet --disable-tests --disable-bench
+make -j$(nproc)
+# Installs to /usr/local/bin/nycd, nyc-cli, nyc-tx
+sudo make install
+# Copy to the legacy binary name used by service files:
+sudo cp /usr/local/bin/nycd /usr/local/bin/newyorkcoind
+sudo cp /usr/local/bin/nyc-cli /usr/local/bin/newyorkcoin-cli
 ```
 
 ### Connecting to the Network
@@ -186,6 +219,54 @@ addnode=24.52.248.184
 addnode=37.59.20.42
 addnode=66.70.182.1
 addnode=85.19.25.38
+```
+
+---
+
+## Rosetta API (mesh-newyorkcoin)
+
+The `mesh-newyorkcoin` service implements the
+[Coinbase Rosetta](https://docs.cloud.coinbase.com/rosetta/docs/welcome) spec
+as a Go middleware that proxies requests to the running `nycd` node over
+JSON-RPC with HTTP Basic Auth.
+
+### Public endpoint
+
+```
+http://74.208.146.8:8081
+```
+
+### Running in External RPC mode
+
+The service accepts three additional environment variables when you already
+have a `nycd` node running:
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `EXTERNAL_RPC` | `true` | Skip launching the bundled node; connect to an existing one |
+| `RPC_USER` | `<rpcuser>` | RPC username from `newyorkcoin.conf` |
+| `RPC_PASSWORD` | `<rpcpassword>` | RPC password from `newyorkcoin.conf` |
+
+Example systemd `Environment=` lines:
+
+```ini
+Environment=MODE=ONLINE
+Environment=NETWORK=MAINNET
+Environment=PORT=8081
+Environment=EXTERNAL_RPC=true
+Environment=RPC_USER=nycnode
+Environment=RPC_PASSWORD=<your-rpc-password>
+```
+
+### Quick test
+
+```bash
+curl -s http://74.208.146.8:8081/network/list
+# {"network_identifiers":[{"blockchain":"NewYorkCoin","network":"Mainnet"}]}
+
+curl -s -X POST http://74.208.146.8:8081/network/status \
+  -H 'Content-Type: application/json' \
+  -d '{"network_identifier":{"blockchain":"NewYorkCoin","network":"Mainnet"}}'
 ```
 
 ---
@@ -273,12 +354,12 @@ OP_RETURN  (or anywhere in scriptSig)
 | SHA256 / MD5 checksums for releases | ✅ Included in each release |
 | DNS seed servers | ⚠️ Offline — use `addnode` |
 | Checkpoints | 🔲 Planned |
-| Rosetta API | 🔲 In progress (mesh-newyorkcoin scaffolded) |
+| Rosetta API | ✅ **Deployed** — `http://74.208.146.8:8081` (External RPC mode) |
 | Atomic Swaps | 🔲 Planned |
 | NYC Ordinals | 🔲 Planned |
-| SegWit activation | � Scheduled — block **13,500,000** (~Sep 2026) |
-| Taproot activation | 🔜 Scheduled — BIP9 signaling blocks **14M–16M** (~Nov 2026+) |
-| MimbleWimble extension blocks | ❌ Permanently disabled |
+| SegWit activation | 🔜 Scheduled — block **13,500,000** (~Sep 2026) |
+| Taproot activation | 🔜 Scheduled — BIP9 bit 2 signaling blocks **14M–16M** (~Nov 2026+) |
+| MWEB activation | 🔜 Scheduled — BIP9 bit 4 signaling blocks **15M–17M** (~Dec 2026+) |
 | Custom OP_CODE scripting | 🔲 Planned (post-Taproot) |
 | Security audit | ❌ Not yet performed |
 
