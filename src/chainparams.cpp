@@ -146,10 +146,9 @@ public:
         consensus.powLimit = uint256S(
             "0x00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 
-        // KGW: nPowTargetSpacing is the per-block target (30 seconds).
-        // nPowTargetTimespan is set to the KGW PastBlocksMin window in seconds:
-        //   PastBlocksMin = 86400*0.01/30 = 28 blocks × 30 s = 840 s.
-        consensus.nPowTargetTimespan  = 28 * 30; // 840 seconds (KGW PastBlocksMin window)
+        // DGW v3: nPowTargetSpacing is the per-block target (30 seconds).
+        // nPowTargetTimespan = nPastBlocks * nPowTargetSpacing = 24 * 30 = 720 s.
+        consensus.nPowTargetTimespan  = 24 * 30; // 720 seconds (DGW v3 window: 24 blocks)
         consensus.nPowTargetSpacing   = 30;        // 30-second block target
 
         consensus.fPowAllowMinDifficultyBlocks = false;
