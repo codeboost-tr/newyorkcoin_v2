@@ -248,6 +248,17 @@ jobs:
         run: |
           export LIBTOOLIZE="$(brew --prefix libtool)/bin/glibtoolize"
           autoreconf -fi
+
+          # Boost::system became header-only in Boost 1.69; Homebrew 1.90+ no longer
+          # ships libboost_system.dylib.  The ax_boost_system.m4 macro finds the lib
+          # by globbing BOOSTLIBDIR/libboost_system* and fails when nothing matches.
+          # Create an empty stub archive so the AC_CHECK_LIB probe links successfully.
+          BOOST_LIB="$(brew --prefix boost)/lib"
+          if [ ! -f "$BOOST_LIB/libboost_system.a" ] && \
+             [ ! -f "$BOOST_LIB/libboost_system.dylib" ]; then
+            ar rcs "$BOOST_LIB/libboost_system.a"
+          fi
+
           export PKG_CONFIG_PATH="$(brew --prefix qt@5)/lib/pkgconfig:$(brew --prefix libevent)/lib/pkgconfig:$(brew --prefix miniupnpc)/lib/pkgconfig"
           ./configure \
             --disable-tests --disable-bench \
@@ -257,7 +268,7 @@ jobs:
             --with-incompatible-bdb \
             CXXFLAGS="-O2" \
             CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$(brew --prefix berkeley-db@4)/include -I$(brew --prefix boost)/include -I$(brew --prefix miniupnpc)/include" \
-            LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$(brew --prefix berkeley-db@4)/lib -L$(brew --prefix boost)/lib"
+            LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$(brew --prefix berkeley-db@4)/lib -L$(brew --prefix boost)/lib -L$(brew --prefix libevent)/lib"
 
       - name: Build
         run: make -j$(sysctl -n hw.logicalcpu)
