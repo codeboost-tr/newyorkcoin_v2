@@ -126,8 +126,8 @@ public:
 
         // KGW: nPowTargetSpacing is the per-block target (30 seconds).
         // nPowTargetTimespan is set to the KGW PastBlocksMin window in seconds:
-        //   144 blocks × 30 s = 4320 s.  DifficultyAdjustmentInterval() = 144.
-        consensus.nPowTargetTimespan  = 144 * 30; // 4320 seconds (KGW PastBlocksMin window)
+        //   PastBlocksMin = 86400*0.01/30 = 28 blocks × 30 s = 840 s.
+        consensus.nPowTargetTimespan  = 28 * 30; // 840 seconds (KGW PastBlocksMin window)
         consensus.nPowTargetSpacing   = 30;        // 30-second block target
 
         consensus.fPowAllowMinDifficultyBlocks = false;

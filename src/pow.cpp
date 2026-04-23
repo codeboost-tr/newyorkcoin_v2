@@ -54,9 +54,12 @@ static unsigned int KimotoGravityWell(const CBlockIndex* pindexLast,
 {
     const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
 
-    // NYC-specific KGW parameters (matching the original 1.x chain).
-    static const uint64_t nPastBlocksMin = 144;
-    static const uint64_t nPastBlocksMax = 4032;
+    // NYC-specific KGW parameters derived from the original 1.x chain:
+    //   BlocksTargetSpacing = 30 s
+    //   PastSecondsMin = 86400 * 0.01 = 864 s  → PastBlocksMin = 864 / 30 = 28
+    //   PastSecondsMax = 86400 * 0.14 = 12096 s → PastBlocksMax = 12096 / 30 = 403
+    static const uint64_t nPastBlocksMin = 28;
+    static const uint64_t nPastBlocksMax = 403;
 
     if (!pindexLast || (uint64_t)pindexLast->nHeight < nPastBlocksMin)
         return bnPowLimit.GetCompact();
