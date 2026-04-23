@@ -242,7 +242,21 @@ jobs:
       - name: Install dependencies
         run: |
           brew install automake libtool pkg-config boost openssl@3 \
-            miniupnpc qt@5 qrencode libnatpmp libevent berkeley-db@4
+            miniupnpc qt@5 qrencode libnatpmp libevent
+
+      - name: Build BDB 4.8 from source
+        run: |
+          # berkeley-db@4 was disabled in Homebrew on 2025-08-24; build from source.
+          BDB_PREFIX="/tmp/bdb4"
+          curl -fsSL https://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz | tar xz
+          cd db-4.8.30.NC/build_unix
+          ../dist/configure \
+            --enable-cxx --disable-shared --with-pic \
+            --prefix="$BDB_PREFIX" \
+            CC=clang CXX=clang++
+          make -j$(sysctl -n hw.logicalcpu)
+          make install
+          echo "BDB_PREFIX=$BDB_PREFIX" >> "$GITHUB_ENV"
 
       - name: Configure
         run: |
@@ -256,8 +270,6 @@ jobs:
           BOOST_LIB="$(brew --prefix boost)/lib"
           if [ ! -f "$BOOST_LIB/libboost_system.a" ] && \
              [ ! -f "$BOOST_LIB/libboost_system.dylib" ]; then
-            # BSD ar (macOS) requires at least one object file; GNU ar does not.
-            # Compile a minimal stub object then archive it.
             echo 'void boost_system_stub(void){}' | \
               clang -x c - -c -o /tmp/boost_system_stub.o
             ar rcs "$BOOST_LIB/libboost_system.a" /tmp/boost_system_stub.o
@@ -271,8 +283,8 @@ jobs:
             --with-boost-libdir="$(brew --prefix boost)/lib" \
             --with-incompatible-bdb \
             CXXFLAGS="-O2" \
-            CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$(brew --prefix berkeley-db@4)/include -I$(brew --prefix boost)/include -I$(brew --prefix miniupnpc)/include" \
-            LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$(brew --prefix berkeley-db@4)/lib -L$(brew --prefix boost)/lib -L$(brew --prefix libevent)/lib"
+            CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$BDB_PREFIX/include -I$(brew --prefix boost)/include -I$(brew --prefix miniupnpc)/include" \
+            LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$BDB_PREFIX/lib -L$(brew --prefix boost)/lib -L$(brew --prefix libevent)/lib"
 
       - name: Build
         run: make -j$(sysctl -n hw.logicalcpu)
