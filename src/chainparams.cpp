@@ -98,26 +98,48 @@ public:
         consensus.nSubsidyHalvingInterval = 500000;
 
         // ── BIP activation heights ──────────────────────────────────────────
-        // P2SH / BIP16 enforced from block 0 on the NYC chain.
-        consensus.BIP16Height  = 0;
-        // BIP34 (height in coinbase): the original NYC network used majority-vote
-        // activation, never a hardcoded buried height.  Setting INT_MAX here
-        // effectively disables the buried-height enforcement so that the ~4.8 M
-        // legacy v1 blocks (which predate AuxPoW and do NOT encode height in their
-        // coinbase) are accepted without triggering "bad-cb-height".
-        consensus.BIP34Height  = std::numeric_limits<int>::max();
+        // Soft-fork upgrade strategy for NewYorkCoin Core v2.0+:
+        //
+        // v2.0 is BACKWARD COMPATIBLE with the existing 1.14.x / 1.3.x network.
+        // All historical blocks (0 – ~12,600,000) are accepted under the same
+        // rules as the original nodes.  New consensus rules activate at heights
+        // well above the current chain tip; v1.x miners continue producing valid
+        // blocks until those heights are reached.
+        //
+        // After each activation height, the new rules are SOFT FORKS:
+        //   - Old (v1.x) nodes: still accept all blocks (they see new opcodes as
+        //     NOP or treat witness outputs as anyone-can-spend).
+        //   - New (v2.0+) nodes: enforce the tighter rules.
+        //   - Old wallets: continue to send/receive with legacy P2PKH addresses.
+        //   - New wallets: can also use CSV-locked outputs, SegWit (nyc1...),
+        //     and eventually Taproot addresses.
+        //
+        // BIP34/65/66 (height-in-coinbase / CLTV / strict-DER):
+        //   These require miners to change their coinbase template.  The original
+        //   NYC chain never buried these heights; activating them unilaterally
+        //   would reject blocks from v1.x miners who haven't updated.  Kept at
+        //   INT_MAX until an explicit miner-coordinated upgrade (v2.1+).
+        consensus.BIP16Height  = 0;       // P2SH active from genesis
+        consensus.BIP34Height  = std::numeric_limits<int>::max(); // not buried
         consensus.BIP34Hash    = uint256();
-        // BIP65 (CLTV) and BIP66 (strict DER): likewise never buried on NYC.
-        // Use INT_MAX so that pre-AuxPoW v1/v2 blocks are not rejected as
-        // "bad-version" by the version check in ContextualCheckBlockHeader.
-        consensus.BIP65Height  = std::numeric_limits<int>::max();
-        consensus.BIP66Height  = std::numeric_limits<int>::max();
-        // CSV (BIP68/112/113): NYC has not activated CSV; defer to far future.
-        consensus.CSVHeight    = std::numeric_limits<int>::max();
-        // SegWit: NYC has not activated SegWit; defer to far future.
-        consensus.SegwitHeight = std::numeric_limits<int>::max();
-        // MinBIP9WarningHeight: not relevant until SegWit era.
-        consensus.MinBIP9WarningHeight = 0;
+        consensus.BIP65Height  = std::numeric_limits<int>::max(); // not buried
+        consensus.BIP66Height  = std::numeric_limits<int>::max(); // not buried
+
+        // CSV (BIP68/112/113 — CheckSequenceVerify):
+        //   Soft fork: enables relative lock-times.  v1.x miners produce
+        //   compatible blocks; only spends of CSV-locked outputs are affected.
+        //   At 30 s/block, block 13,000,000 is ~138 days above the current tip
+        //   (~12,600,000), giving the network time to upgrade nodes.
+        consensus.CSVHeight    = 13000000;
+
+        // SegWit (BIP141/143/147 — Segregated Witness):
+        //   Soft fork: enables witness transactions and bech32 nyc1... addresses.
+        //   Activates 500,000 blocks (~174 days) after CSV.  v1.x nodes see
+        //   witness outputs as anyone-can-spend and remain on the same chain.
+        consensus.SegwitHeight = 13500000;
+
+        // Warn if SegWit signaling window is missed.
+        consensus.MinBIP9WarningHeight = 13500000 + 2880; // one window after SegWit
 
         // ── Proof-of-Work limits ────────────────────────────────────────────
         // Same powLimit as original NYC (Scrypt, ~uint256(0) >> 20).
@@ -140,8 +162,9 @@ public:
         // cannot share the same parent block (prevents one-hop attacks).
         consensus.nAuxpowChainId = 1985; // 0x07C1 — NYC historical chain ID
 
-        // ── BIP9 / Taproot / MWEB ───────────────────────────────────────────
-        // Phase 2: defer all soft-fork activations.
+        // ── BIP9 soft-fork signaling ─────────────────────────────────────────
+        // Confirmation window: 2880 blocks (~1 day at 30 s/block).
+        // Activation threshold: 2160/2880 = 75% of the window.
         consensus.nRuleChangeActivationThreshold = 2160; // 75% of 2880
         consensus.nMinerConfirmationWindow       = 2880; // ~1 day at 30-s blocks
 
@@ -151,16 +174,22 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout =
             Consensus::BIP9Deployment::NO_TIMEOUT;
 
-        // Taproot (BIPs 340-342): Phase 2 — not scheduled.
-        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].bit          = 2;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nStartHeight =
-            std::numeric_limits<int>::max() / 2;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nTimeoutHeight =
-            std::numeric_limits<int>::max() / 2;
+        // Taproot (BIPs 340-342 — Schnorr + MAST + TapScript):
+        //   Activated via miner signaling once ≥75% of blocks in any 2880-block
+        //   window set version bit 2.  Signaling starts at block 14,000,000
+        //   (after SegWit is live at 13,500,000 — Taproot requires SegWit).
+        //   Timeout at block 16,000,000 gives miners ~700 days to activate;
+        //   if not achieved by then, a new deployment window can be scheduled.
+        //   v1.x nodes see Taproot outputs as anyone-can-spend; they remain
+        //   fully on the same chain and can spend non-Taproot outputs normally.
+        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].bit           = 2;
+        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nStartHeight  = 14000000;
+        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nTimeoutHeight = 16000000;
 
-        // MWEB (LIP-0002/0003/0004): NYC does not use MimbleWimble. Never activate.
-        consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].bit          = 4;
-        consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nStartHeight =
+        // MWEB (MimbleWimble Extension Blocks): NYC does not use MimbleWimble.
+        // Bit 4 is reserved; keep permanently inactive.
+        consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].bit           = 4;
+        consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nStartHeight  =
             std::numeric_limits<int>::max() / 2;
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nTimeoutHeight =
             std::numeric_limits<int>::max() / 2;
