@@ -1,5 +1,5 @@
-NewYorkCoin Core v2.0
-=====================
+NewYorkCoin Core v2.0.2
+=======================
 
 > **WARNING: EXPERIMENTAL SOFTWARE - READ BEFORE USE**
 >
@@ -118,6 +118,31 @@ Key departures from the Litecoin base:
 | Difficulty algo | KGW / DGW | **KGW (Kimoto Gravity Well)** |
 | bech32 HRP | `ltc` | **`nyc`** |
 | Merged mining | No | **AuxPoW (chain ID 1985 / 0x07C1)** |
+
+---
+
+## Soft-Fork Activation Schedule (v2.0)
+
+All activations listed below are **soft forks** — they tighten validation
+rules. Nodes running v1.14.x or v1.3.x remain on the same chain and are
+unaffected until each height is reached.
+
+| Soft Fork | BIPs | Activation Height | Approx. Date | Notes |
+|-----------|------|-------------------|-------------|-------|
+| P2SH | BIP16 | **0** (genesis) | March 2014 | Always active |
+| CSV (relative lock-times) | BIP68, 112, 113 | **13,000,000** | ~Aug 2026 | ~138 days above current tip (~12.6M) |
+| SegWit | BIP141, 143, 147 | **13,500,000** | ~Sep 2026 | Enables `nyc1q...` bech32 addresses; legacy wallets unaffected |
+| Taproot | BIP340, 341, 342 | BIP9 bit 2 signaling | ~Nov 2026+ | Requires SegWit; 75% of 2880-block window (~1 day) to lock in; signal window blocks 14,000,000–16,000,000 |
+| BIP34 / BIP65 / BIP66 | — | `INT_MAX` (deferred) | TBD | Requires miners to change coinbase format; will be coordinated in a v2.1 release |
+| MimbleWimble (MWEB) | — | **Disabled** | — | NYC does not use MimbleWimble extension blocks |
+
+### Miner confirmation window
+
+- `nMinerConfirmationWindow` = **2880 blocks** (~24 hours at 30 s/block)
+- `nRuleChangeActivationThreshold` = **2160 blocks** (75 % of window)
+
+So Taproot locks in when ≥ 2160 of any rolling 2880-block window within
+blocks 14,000,000 – 16,000,000 signal BIP9 bit 2.
 
 ---
 
@@ -251,9 +276,9 @@ OP_RETURN  (or anywhere in scriptSig)
 | Rosetta API | 🔲 In progress (mesh-newyorkcoin scaffolded) |
 | Atomic Swaps | 🔲 Planned |
 | NYC Ordinals | 🔲 Planned |
-| SegWit activation | 🔲 Planned |
-| Taproot activation | 🔲 Planned (after SegWit) |
-| MimbleWimble extension blocks | 🔲 Planned |
+| SegWit activation | � Scheduled — block **13,500,000** (~Sep 2026) |
+| Taproot activation | 🔜 Scheduled — BIP9 signaling blocks **14M–16M** (~Nov 2026+) |
+| MimbleWimble extension blocks | ❌ Permanently disabled |
 | Custom OP_CODE scripting | 🔲 Planned (post-Taproot) |
 | Security audit | ❌ Not yet performed |
 
