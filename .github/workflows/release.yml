@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Existing release tag to build against (e.g. v2.0.4)'
+        description: 'Existing release tag to build against (e.g. v2.0.5)'
         required: true
-        default: 'v2.0.4'
+        default: 'v2.0.5'
 
 # Allow the publish job to write release assets
 permissions:
@@ -161,7 +161,8 @@ jobs:
             build-essential libtool autotools-dev automake pkg-config bsdmainutils curl \
             gcc-10 g++-10 \
             g++-mingw-w64-x86-64 mingw-w64-x86-64-dev \
-            nsis python3
+            nsis osslsigncode python3 python3-pip
+          pip3 install --quiet Pillow
 
       - name: Set compiler alternatives
         run: |
@@ -196,8 +197,58 @@ jobs:
       - name: Build
         run: make -j$(nproc)
 
+      - name: Generate NSIS wizard bitmap
+        run: |
+          python3 share/pixmaps/gen_nsis_wizard.py ${{ steps.tag.outputs.tag }}
+
+      - name: Sign Windows binaries
+        if: env.CODESIGN_PFX_BASE64 != ''
+        env:
+          CODESIGN_PFX_BASE64: ${{ secrets.CODESIGN_PFX_BASE64 }}
+          CODESIGN_PFX_PASSWORD: ${{ secrets.CODESIGN_PFX_PASSWORD }}
+        run: |
+          echo "$CODESIGN_PFX_BASE64" | base64 -d > /tmp/codesign.pfx
+          for BIN in \
+            src/nycd.exe \
+            src/nyc-cli.exe \
+            src/nyc-tx.exe \
+            src/nyc-wallet.exe \
+            src/qt/nyc-qt.exe; do
+            [ -f "$BIN" ] || continue
+            osslsigncode sign \
+              -pkcs12 /tmp/codesign.pfx \
+              -pass  "$CODESIGN_PFX_PASSWORD" \
+              -n     "NewYorkCoin Core" \
+              -i     "https://paywith.nyc/" \
+              -ts    "http://timestamp.digicert.com" \
+              -in    "$BIN" -out "${BIN}.signed"
+            mv "${BIN}.signed" "$BIN"
+            echo "Signed: $BIN"
+          done
+          rm -f /tmp/codesign.pfx
+
       - name: Create NSIS installer
         run: make deploy
+
+      - name: Sign NSIS installer
+        if: env.CODESIGN_PFX_BASE64 != ''
+        env:
+          CODESIGN_PFX_BASE64: ${{ secrets.CODESIGN_PFX_BASE64 }}
+          CODESIGN_PFX_PASSWORD: ${{ secrets.CODESIGN_PFX_PASSWORD }}
+        run: |
+          INSTALLER=$(find . -maxdepth 4 \( -name "*setup*.exe" -o -name "*Setup*.exe" \) ! -path "*/src/*" | head -1)
+          [ -z "$INSTALLER" ] && { echo "No installer found to sign"; exit 0; }
+          echo "$CODESIGN_PFX_BASE64" | base64 -d > /tmp/codesign.pfx
+          osslsigncode sign \
+            -pkcs12 /tmp/codesign.pfx \
+            -pass  "$CODESIGN_PFX_PASSWORD" \
+            -n     "NewYorkCoin Core" \
+            -i     "https://paywith.nyc/" \
+            -ts    "http://timestamp.digicert.com" \
+            -in    "$INSTALLER" -out "${INSTALLER}.signed"
+          mv "${INSTALLER}.signed" "$INSTALLER"
+          echo "Signed installer: $INSTALLER"
+          rm -f /tmp/codesign.pfx
 
       - name: Package
         id: pkg

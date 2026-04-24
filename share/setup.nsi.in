@@ -10,7 +10,7 @@ SetDateSave off
 
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
-!define COMPANY "@PACKAGE_NAME@ project"
+!define COMPANY "The NewYorkCoin Community"
 !define URL @PACKAGE_URL@
 
 # MUI Symbol Definitions
