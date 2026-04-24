@@ -402,6 +402,12 @@ jobs:
             echo "tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
           fi
 
+      - uses: actions/checkout@v4
+        with:
+          ref: nyc-core-v2.0
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -450,3 +456,13 @@ jobs:
             --repo "${{ github.repository }}" \
             --clobber \
             *
+
+      - name: Update README version
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+          sed -i "s/^NewYorkCoin Core v[0-9.]*$/NewYorkCoin Core ${TAG}/" README.md
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --staged --quiet || git commit -m "docs: bump README to ${TAG} [skip ci]"
+          git push origin nyc-core-v2.0
