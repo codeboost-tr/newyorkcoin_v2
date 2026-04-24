@@ -1,4 +1,4 @@
-NewYorkCoin Core v2.0.5
+NewYorkCoin Core v2.0.6
 =======================
 
 > **WARNING: EXPERIMENTAL SOFTWARE - READ BEFORE USE**
