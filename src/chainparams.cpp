@@ -146,10 +146,12 @@ public:
         consensus.powLimit = uint256S(
             "0x00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 
-        // DGW v3: nPowTargetSpacing is the per-block target (30 seconds).
-        // nPowTargetTimespan = nPastBlocks * nPowTargetSpacing = 24 * 30 = 720 s.
-        consensus.nPowTargetTimespan  = 24 * 30; // 720 seconds (DGW v3 window: 24 blocks)
-        consensus.nPowTargetSpacing   = 30;        // 30-second block target
+        // DigiShield: retarget every 2 blocks (DifficultyAdjustmentInterval = 2).
+        // nPowTargetTimespan = 60 s (target time for 2 blocks at 30 s each).
+        // nPowTargetSpacing  = 30 s per block.
+        // Matches NewYorkCoinNYC/newyorkcoin v1.14.3 digishieldConsensus params.
+        consensus.nPowTargetTimespan  = 60; // 2-block window at 30 s/block
+        consensus.nPowTargetSpacing   = 30; // 30-second block target
 
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting            = false;
@@ -304,7 +306,7 @@ public:
 
         consensus.powLimit = uint256S(
             "0x00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan          = 24 * 30;
+        consensus.nPowTargetTimespan          = 60; // DigiShield: 2-block window
         consensus.nPowTargetSpacing           = 30;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting            = false;

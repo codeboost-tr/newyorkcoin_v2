@@ -6,15 +6,19 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 //
-// DarkGravityWave v3 difficulty algorithm.
+// DigiShield difficulty algorithm (as used by the NewYorkCoin v1.14.x network).
 //
-// Based on the Dash implementation (src/pow.cpp, ~2014-2021 Dash Core Developers).
-// DGW performs a per-block difficulty adjustment using an exponentially-weighted
-// moving average over the past 24 blocks.
+// The live NYC chain above block 4,800,000 uses a DigiShield retarget that fires
+// every DifficultyAdjustmentInterval() = nPowTargetTimespan / nPowTargetSpacing
+// = 60 / 30 = 2 blocks.  On odd-height blocks the previous difficulty is
+// carried forward unchanged; on even-height blocks a new target is computed.
 //
-// References:
-//   https://github.com/dashpay/dash/blob/master/src/pow.cpp
-//   https://github.com/NewYorkCoinNYC/newyorkcoin/blob/master/src/pow.cpp
+// The amplitude filter damps the adjustment to 1/8 of the observed deviation
+// from the target timespan, then clamps to [75 %, 150 %] of the target.
+//
+// Reference implementation:
+//   https://github.com/NewYorkCoinNYC/newyorkcoin/blob/1.14.3-Test/src/pow.cpp
+//   https://github.com/NewYorkCoinNYC/newyorkcoin/blob/1.14.3-Test/src/newyorkcoin.cpp
 //
 
 #include <pow.h>
@@ -24,74 +28,6 @@
 #include <primitives/block.h>
 #include <uint256.h>
 #include <util/system.h>
-
-/**
- * DarkGravityWave v3
- *
- * Computes the next required proof-of-work target by taking a weighted moving
- * average of the targets observed in the last nPastBlocks (24) blocks.
- *
- * Algorithm:
- *   1. Walk back nPastBlocks blocks from pindexLast.
- *   2. Compute running weighted average: avg = (avg * n + target) / (n + 1).
- *   3. Scale the average by (actual elapsed time / expected elapsed time),
- *      clamping actual to [expected/3, expected*3] to prevent extreme swings.
- *   4. Clamp result to powLimit.
- */
-static unsigned int DarkGravityWave(const CBlockIndex* pindexLast,
-                                     const Consensus::Params& params)
-{
-    const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
-
-    const int64_t nPastBlocks = 24;
-
-    // Not enough history — return the minimum difficulty.
-    if (!pindexLast || pindexLast->nHeight < nPastBlocks)
-        return bnPowLimit.GetCompact();
-
-    const CBlockIndex* pindex = pindexLast;
-    arith_uint256 bnPastTargetAvg;
-
-    for (unsigned int nCountBlocks = 1; nCountBlocks <= (unsigned int)nPastBlocks; nCountBlocks++) {
-        arith_uint256 bnTarget;
-        bnTarget.SetCompact(pindex->nBits);
-
-        if (nCountBlocks == 1) {
-            bnPastTargetAvg = bnTarget;
-        } else {
-            // Incremental weighted average: avg = (avg * n + target) / (n + 1)
-            bnPastTargetAvg = (bnPastTargetAvg * nCountBlocks + bnTarget) / (nCountBlocks + 1);
-        }
-
-        if (nCountBlocks != (unsigned int)nPastBlocks) {
-            assert(pindex->pprev);
-            pindex = pindex->pprev;
-        }
-    }
-
-    arith_uint256 bnNew(bnPastTargetAvg);
-
-    // pindex now points to the oldest of the 24 sampled blocks.
-    // pindexLast is the most-recent block.
-    int64_t nActualTimespan = pindexLast->GetBlockTime() - pindex->GetBlockTime();
-    int64_t nTargetTimespan = nPastBlocks * params.nPowTargetSpacing;
-
-    // Clamp actual timespan to prevent extreme oscillation.
-    if (nActualTimespan < nTargetTimespan / 3)
-        nActualTimespan = nTargetTimespan / 3;
-    if (nActualTimespan > nTargetTimespan * 3)
-        nActualTimespan = nTargetTimespan * 3;
-
-    // New target = avg_target * (actual / expected).
-    // Higher number = easier difficulty, so multiply then divide.
-    bnNew *= nActualTimespan;
-    bnNew /= nTargetTimespan;
-
-    if (bnNew > bnPowLimit)
-        bnNew = bnPowLimit;
-
-    return bnNew.GetCompact();
-}
 
 // ---------------------------------------------------------------------------
 // Public interface
@@ -103,25 +39,56 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast,
 {
     assert(pindexLast != nullptr);
 
+    const unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
+
     // Regtest / private net: no retargeting.
     if (params.fPowNoRetargeting)
         return pindexLast->nBits;
 
-    // Testnet special rule: if the block took more than 2× the target spacing,
-    // allow minimum difficulty (same as Bitcoin/Litecoin testnet behaviour).
-    if (params.fPowAllowMinDifficultyBlocks) {
-        if (pblock->GetBlockTime() >
-            pindexLast->GetBlockTime() + params.nPowTargetSpacing * 2) {
-            return UintToArith256(params.powLimit).GetCompact();
+    const int64_t nInterval = params.DifficultyAdjustmentInterval();
+
+    // Off a retarget boundary: carry forward the last block's difficulty.
+    // On testnet, allow min difficulty if the block took more than 20× target.
+    if ((pindexLast->nHeight + 1) % nInterval != 0) {
+        if (params.fPowAllowMinDifficultyBlocks) {
+            if (pblock->GetBlockTime() > pindexLast->GetBlockTime() + params.nPowTargetSpacing * 20)
+                return nProofOfWorkLimit;
+            // Return the last non-min-difficulty block.
+            const CBlockIndex* pindex = pindexLast;
+            while (pindex->pprev &&
+                   pindex->nHeight % nInterval != 0 &&
+                   pindex->nBits == nProofOfWorkLimit)
+                pindex = pindex->pprev;
+            return pindex->nBits;
         }
+        return pindexLast->nBits;
     }
 
-    return DarkGravityWave(pindexLast, params);
+    // On a retarget boundary: compute new difficulty via DigiShield.
+    // Go back by the full interval (except for the very first retarget window).
+    int64_t blockstogoback = nInterval;
+    if ((pindexLast->nHeight + 1) == nInterval)
+        blockstogoback = nInterval - 1;
+
+    int nHeightFirst = pindexLast->nHeight - (int)blockstogoback;
+    assert(nHeightFirst >= 0);
+    const CBlockIndex* pindexFirst = pindexLast->GetAncestor(nHeightFirst);
+    assert(pindexFirst);
+
+    return CalculateNextWorkRequired(pindexLast, pindexFirst->GetBlockTime(), params);
 }
 
 /**
- * CalculateNextWorkRequired is retained for unit-test compatibility.
- * It is not used during normal block validation (DGW is used instead).
+ * CalculateNextWorkRequired — DigiShield retarget.
+ *
+ * Applies the amplitude-filtered DigiShield adjustment used by the NYC v1.14.x
+ * network for all blocks above height 4,800,000.
+ *
+ *   nModulatedTimespan = retarget + (actual - retarget) / 8
+ *   clamped to [retarget * 0.75, retarget * 1.50]
+ *
+ * With nPowTargetTimespan = 60 s:
+ *   nMinTimespan = 45 s, nMaxTimespan = 90 s.
  */
 unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast,
                                         int64_t nFirstBlockTime,
@@ -130,10 +97,29 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast,
     if (params.fPowNoRetargeting)
         return pindexLast->nBits;
 
-    // Fall through to DGW — the classic two-endpoint retarget does not apply to
-    // the NYC chain.  Callers that need a deterministic result from a fixed
-    // window can use DGW via GetNextWorkRequired.
-    return DarkGravityWave(pindexLast, params);
+    const int64_t retargetTimespan = params.nPowTargetTimespan;
+    const int64_t nActualTimespan  = pindexLast->GetBlockTime() - nFirstBlockTime;
+
+    // DigiShield amplitude filter: damp the adjustment to 1/8 of the deviation.
+    int64_t nModulatedTimespan = retargetTimespan + (nActualTimespan - retargetTimespan) / 8;
+
+    // Clamp: ±25 % / +50 % of target timespan.
+    const int64_t nMinTimespan = retargetTimespan - (retargetTimespan / 4); // 75 %
+    const int64_t nMaxTimespan = retargetTimespan + (retargetTimespan / 2); // 150 %
+    if (nModulatedTimespan < nMinTimespan) nModulatedTimespan = nMinTimespan;
+    if (nModulatedTimespan > nMaxTimespan) nModulatedTimespan = nMaxTimespan;
+
+    // new_target = old_target * modulated / retarget
+    const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
+    arith_uint256 bnNew;
+    bnNew.SetCompact(pindexLast->nBits);
+    bnNew *= nModulatedTimespan;
+    bnNew /= retargetTimespan;
+
+    if (bnNew > bnPowLimit)
+        bnNew = bnPowLimit;
+
+    return bnNew.GetCompact();
 }
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
