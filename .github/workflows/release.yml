@@ -165,9 +165,9 @@ jobs:
             cmake libssl-dev libcurl4-openssl-dev
           pip3 install --quiet Pillow
 
-      - name: Install osslsigncode from source (v2.9 — fixes RFC 3161 timestamp bug in apt v2.2)
+      - name: Install osslsigncode from source (fixes RFC 3161 timestamp bug in apt v2.2)
         run: |
-          git clone --depth 1 --branch 2.9.0 https://github.com/mtrojnar/osslsigncode.git /tmp/osslsigncode
+          git clone --depth 1 https://github.com/mtrojnar/osslsigncode.git /tmp/osslsigncode
           cmake -S /tmp/osslsigncode -B /tmp/osslsigncode/build -DCMAKE_BUILD_TYPE=Release
           cmake --build /tmp/osslsigncode/build -j$(nproc)
           sudo cmake --install /tmp/osslsigncode/build
