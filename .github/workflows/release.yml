@@ -220,7 +220,7 @@ jobs:
               -pass  "$CODESIGN_PFX_PASSWORD" \
               -n     "NewYorkCoin Core" \
               -i     "https://paywith.nyc/" \
-              -ts    "http://timestamp.digicert.com" \
+              -ts    "http://timestamp.sectigo.com" \
               -in    "$BIN" -out "${BIN}.signed"
             mv "${BIN}.signed" "$BIN"
             echo "Signed: $BIN"
@@ -244,7 +244,7 @@ jobs:
             -pass  "$CODESIGN_PFX_PASSWORD" \
             -n     "NewYorkCoin Core" \
             -i     "https://paywith.nyc/" \
-            -ts    "http://timestamp.digicert.com" \
+            -ts    "http://timestamp.sectigo.com" \
             -in    "$INSTALLER" -out "${INSTALLER}.signed"
           mv "${INSTALLER}.signed" "$INSTALLER"
           echo "Signed installer: $INSTALLER"
