@@ -69,7 +69,7 @@ itself a fork of [Bitcoin Core](https://github.com/bitcoin/bitcoin).
 8. **Rosetta API** — the
    [Coinbase Rosetta](https://docs.cloud.coinbase.com/rosetta/docs/welcome)
    middleware service (`mesh-newyorkcoin`) is **deployed** on the public VPS
-   at `http://74.208.146.8:8081`.  It runs in External RPC mode, connecting to
+   at `https://rosetta.paywith.nyc`.  It runs in External RPC mode, connecting to
    the local `nycd` node via HTTP Basic Auth without managing its own daemon.
    Endpoints: `/network/list`, `/network/status`, `/block`, `/account/balance`,
    `/mempool`, and `/construction/*`.
@@ -233,7 +233,7 @@ JSON-RPC with HTTP Basic Auth.
 ### Public endpoint
 
 ```
-http://74.208.146.8:8081
+https://rosetta.paywith.nyc
 ```
 
 ### Running in External RPC mode
@@ -261,10 +261,10 @@ Environment=RPC_PASSWORD=<your-rpc-password>
 ### Quick test
 
 ```bash
-curl -s http://74.208.146.8:8081/network/list
+curl -s https://rosetta.paywith.nyc/network/list
 # {"network_identifiers":[{"blockchain":"NewYorkCoin","network":"Mainnet"}]}
 
-curl -s -X POST http://74.208.146.8:8081/network/status \
+curl -s -X POST https://rosetta.paywith.nyc/network/status \
   -H 'Content-Type: application/json' \
   -d '{"network_identifier":{"blockchain":"NewYorkCoin","network":"Mainnet"}}'
 ```
@@ -354,7 +354,7 @@ OP_RETURN  (or anywhere in scriptSig)
 | SHA256 / MD5 checksums for releases | ✅ Included in each release |
 | DNS seed servers | ⚠️ Offline — use `addnode` |
 | Checkpoints | 🔲 Planned |
-| Rosetta API | ✅ **Deployed** — `http://74.208.146.8:8081` (External RPC mode) |
+| Rosetta API | ✅ **Deployed** — `https://rosetta.paywith.nyc` (External RPC mode) |
 | Atomic Swaps | 🔲 Planned |
 | NYC Ordinals | 🔲 Planned |
 | SegWit activation | 🔜 Scheduled — block **13,500,000** (~Sep 2026) |
