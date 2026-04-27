@@ -51,7 +51,6 @@
     <ClCompile Include="..\..\src\qt\transactiondesc.cpp" />
     <ClCompile Include="..\..\src\qt\transactiondescdialog.cpp" />
     <ClCompile Include="..\..\src\qt\transactionfilterproxy.cpp" />
-    <ClCompile Include="..\..\src\qt\transactionrecord.cpp" />
     <ClCompile Include="..\..\src\qt\transactiontablemodel.cpp" />
     <ClCompile Include="..\..\src\qt\transactionview.cpp" />
     <ClCompile Include="..\..\src\qt\utilitydialog.cpp" />
@@ -105,7 +104,6 @@
     <ClCompile Include="$(GeneratedFilesOutDir)\moc\moc_transactiondescdialog.cpp" />
     <ClCompile Include="$(GeneratedFilesOutDir)\moc\moc_transactionfilterproxy.cpp" />
     <ClCompile Include="$(GeneratedFilesOutDir)\moc\moc_transactionoverviewwidget.cpp" />
-    <ClCompile Include="$(GeneratedFilesOutDir)\moc\moc_transactionrecord.cpp" />
     <ClCompile Include="$(GeneratedFilesOutDir)\moc\moc_transactiontablemodel.cpp" />
     <ClCompile Include="$(GeneratedFilesOutDir)\moc\moc_transactionview.cpp" />
     <ClCompile Include="$(GeneratedFilesOutDir)\moc\moc_utilitydialog.cpp" />

@@ -7,6 +7,7 @@
   <PropertyGroup>
     <ConfigurationType>Application</ConfigurationType>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>nyc-cli</TargetName>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\bitcoin-cli.cpp" />

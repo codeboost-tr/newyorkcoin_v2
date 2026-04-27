@@ -7,6 +7,7 @@
   <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>nyc-tx</TargetName>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\bitcoin-tx.cpp" />
@@ -29,6 +30,9 @@
     </ProjectReference>
     <ProjectReference Include="..\libsecp256k1\libsecp256k1.vcxproj">
       <Project>{bb493552-3b8c-4a8c-bf69-a6e7a51d2ea6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libmw\libmw.vcxproj">
+      <Project>{a1b2c3d4-e5f6-7890-abcd-ef1234567890}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />

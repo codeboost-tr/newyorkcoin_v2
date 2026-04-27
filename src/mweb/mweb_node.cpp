@@ -252,7 +252,7 @@ bool Node::CheckTransaction(const CTransaction& tx, TxValidationState& state)
     if (tx.HasMWEBTx()) {
         try {
             tx.mweb_tx.m_transaction->Validate();
-        } catch (const std::exception& e) {
+        } catch (const std::exception&) {
             return state.Invalid(TxValidationResult::TX_WITNESS_MUTATED, "bad-mweb-txn");
         }
     }

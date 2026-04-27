@@ -15,6 +15,9 @@
     <ProjectReference Include="..\libbitcoinconsensus\libbitcoinconsensus.vcxproj">
       <Project>{2B384FA8-9EE1-4544-93CB-0D733C25E8CE}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\libbitcoin_crypto\libbitcoin_crypto.vcxproj">
+      <Project>{6190199C-6CF4-4DAD-BFBD-93FA72A760C1}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\libbitcoin_util\libbitcoin_util.vcxproj">
       <Project>{B53A5535-EE9D-4C6F-9A26-F79EE3BC3754}</Project>
     </ProjectReference>

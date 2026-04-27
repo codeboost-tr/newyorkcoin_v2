@@ -1860,7 +1860,7 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
     if (blockUndo.mwundo != nullptr) {
         try {
             view.GetMWEBCacheView()->UndoBlock(blockUndo.mwundo);
-        } catch (const std::exception& e) {
+        } catch (const std::exception&) {
             error("DisconnectBlock(): Failed to disconnect MWEB block");
             return DISCONNECT_FAILED;
         }

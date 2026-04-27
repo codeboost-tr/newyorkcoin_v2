@@ -3,6 +3,7 @@
   "version-string": "1",
   "dependencies": [
     "berkeleydb",
+    "boost-dynamic-bitset",
     "boost-filesystem",
     "boost-multi-index",
     "boost-process",
@@ -15,6 +16,7 @@
       "name": "libevent",
       "features": ["thread"]
     },
-    "zeromq"
+    "zeromq",
+    "fmt"
   ]
 }

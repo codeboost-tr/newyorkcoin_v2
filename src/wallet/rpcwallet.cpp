@@ -38,6 +38,8 @@
 #include <wallet/wallet.h>
 #include <wallet/walletdb.h>
 #include <wallet/walletutil.h>
+#include <crypto/bip39.h>
+#include <support/cleanse.h>
 
 #include <stdint.h>
 
@@ -4467,6 +4469,142 @@ static RPCHelpMan sethdseed()
     };
 }
 
+static RPCHelpMan generatemnemonic()
+{
+    return RPCHelpMan{"generatemnemonic",
+                "\nGenerate a new BIP39 mnemonic phrase.\n",
+                {
+                    {"words", RPCArg::Type::NUM, /* default */ "12",
+                     "Number of words: 12 (128-bit entropy) or 24 (256-bit entropy)."},
+                },
+                RPCResult{
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {RPCResult::Type::STR, "mnemonic", "The generated BIP39 mnemonic phrase."},
+                        {RPCResult::Type::NUM, "words", "Number of words in the phrase."},
+                    }
+                },
+                RPCExamples{
+                    HelpExampleCli("generatemnemonic", "")
+                    + HelpExampleCli("generatemnemonic", "24")
+                    + HelpExampleRpc("generatemnemonic", "12")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    int words = 12;
+    if (!request.params[0].isNull()) {
+        words = request.params[0].get_int();
+        if (words != 12 && words != 24) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "words must be 12 or 24");
+        }
+    }
+
+    std::string mnemonic = bip39::GenerateMnemonic(words);
+    if (mnemonic.empty()) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to generate mnemonic");
+    }
+
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("mnemonic", mnemonic);
+    result.pushKV("words", words);
+    return result;
+},
+    };
+}
+
+static RPCHelpMan importmnemonic()
+{
+    return RPCHelpMan{"importmnemonic",
+                "\nImport a BIP39 mnemonic phrase and set it as the wallet HD seed.\n"
+                "The seed is derived via BIP32 (HMAC-SHA512 with key \"Bitcoin seed\"), so the\n"
+                "same mnemonic produces the same root key in any BIP32-compatible wallet.\n"
+                "\nThis replaces the current HD seed. You MUST back up your wallet after this.\n"
+                "\nNote: The wallet must support HD key derivation (not a watch-only wallet).\n" +
+        HELP_REQUIRING_PASSPHRASE,
+                {
+                    {"mnemonic", RPCArg::Type::STR, RPCArg::Optional::NO,
+                     "The BIP39 mnemonic phrase (12 or 24 space-separated words)."},
+                    {"passphrase", RPCArg::Type::STR, /* default */ "\"\"",
+                     "Optional BIP39 passphrase (also called '25th word'). Defaults to empty string."},
+                    {"newkeypool", RPCArg::Type::BOOL, /* default */ "true",
+                     "Flush the old keypool and generate new addresses from this seed."},
+                },
+                RPCResult{RPCResult::Type::NONE, "", ""},
+                RPCExamples{
+                    HelpExampleCli("importmnemonic", "\"abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about\"")
+                    + HelpExampleCli("importmnemonic", "\"word1 word2 ... word12\" \"mypassphrase\"")
+                    + HelpExampleRpc("importmnemonic", "\"word1 word2 ... word12\", \"\", true")
+                },
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) return NullUniValue;
+    CWallet* const pwallet = wallet.get();
+
+    LegacyScriptPubKeyMan& spk_man = EnsureLegacyScriptPubKeyMan(*pwallet, true);
+
+    if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Cannot set an HD seed on a wallet with private keys disabled");
+    }
+
+    LOCK2(pwallet->cs_wallet, spk_man.cs_KeyStore);
+
+    if (!pwallet->CanSupportFeature(FEATURE_HD)) {
+        throw JSONRPCError(RPC_WALLET_ERROR,
+            "Cannot set an HD seed on a non-HD wallet. Use upgradewallet first.");
+    }
+
+    EnsureWalletIsUnlocked(pwallet);
+
+    std::string mnemonic_str = request.params[0].get_str();
+    std::string passphrase;
+    if (!request.params[1].isNull()) {
+        passphrase = request.params[1].get_str();
+    }
+
+    bool flush_key_pool = true;
+    if (!request.params[2].isNull()) {
+        flush_key_pool = request.params[2].get_bool();
+    }
+
+    // Validate mnemonic before doing anything
+    if (!bip39::ValidateMnemonic(mnemonic_str)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+            "Invalid BIP39 mnemonic: bad word(s) or checksum mismatch.");
+    }
+
+    // Derive the 64-byte BIP39 seed
+    std::vector<uint8_t> seed = bip39::MnemonicToSeed(mnemonic_str, passphrase);
+    if (seed.size() != 64) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Mnemonic-to-seed derivation failed");
+    }
+
+    // Derive BIP32 master key from 64-byte BIP39 seed via HMAC-SHA512("Bitcoin seed", seed).
+    // This matches the standard used by Ledger, Trezor, Coinomi, and all BIP44 wallets.
+    CExtKey root_key;
+    root_key.SetSeed(seed.data(), seed.size());
+    CKey master_key = root_key.key;
+    memory_cleanse(seed.data(), seed.size());
+
+    if (!master_key.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+            "Derived key is invalid (extremely rare). Please try a different mnemonic.");
+    }
+
+    if (HaveKey(spk_man, master_key)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+            "Already have this key (either as an HD seed or as a loose private key)");
+    }
+
+    CPubKey master_pub_key = spk_man.DeriveNewSeed(master_key);
+    spk_man.SetHDSeed(master_pub_key);
+    if (flush_key_pool) spk_man.NewKeyPool();
+
+    return NullUniValue;
+},
+    };
+}
+
 static RPCHelpMan walletprocesspsbt()
 {
     return RPCHelpMan{"walletprocesspsbt",
@@ -4793,6 +4931,8 @@ static const CRPCCommand commands[] =
     { "wallet",             "sendmany",                         &sendmany,                      {"dummy","amounts","minconf","comment","subtractfeefrom","replaceable","conf_target","estimate_mode","fee_rate","verbose"} },
     { "wallet",             "sendtoaddress",                    &sendtoaddress,                 {"address","amount","comment","comment_to","subtractfeefromamount","replaceable","conf_target","estimate_mode","avoid_reuse","fee_rate","verbose"} },
     { "wallet",             "sethdseed",                        &sethdseed,                     {"newkeypool","seed"} },
+    { "wallet",             "generatemnemonic",                 &generatemnemonic,              {"words"} },
+    { "wallet",             "importmnemonic",                   &importmnemonic,                {"mnemonic","passphrase","newkeypool"} },
     { "wallet",             "setlabel",                         &setlabel,                      {"address","label"} },
     { "wallet",             "settxfee",                         &settxfee,                      {"amount"} },
     { "wallet",             "setwalletflag",                    &setwalletflag,                 {"flag","value"} },

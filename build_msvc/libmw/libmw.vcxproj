@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\common.init.vcxproj" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\libmw\src\common\Logger.cpp">
+      <ObjectFileName>$(IntDir)libmw_common_Logger.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\crypto\Bulletproofs.cpp">
+      <ObjectFileName>$(IntDir)libmw_crypto_Bulletproofs.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\crypto\ConversionUtil.cpp">
+      <ObjectFileName>$(IntDir)libmw_crypto_ConversionUtil.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\crypto\MuSig.cpp">
+      <ObjectFileName>$(IntDir)libmw_crypto_MuSig.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\crypto\Pedersen.cpp">
+      <ObjectFileName>$(IntDir)libmw_crypto_Pedersen.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\crypto\PublicKeys.cpp">
+      <ObjectFileName>$(IntDir)libmw_crypto_PublicKeys.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\crypto\Schnorr.cpp">
+      <ObjectFileName>$(IntDir)libmw_crypto_Schnorr.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\crypto\SecretKeys.cpp">
+      <ObjectFileName>$(IntDir)libmw_crypto_SecretKeys.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\db\CoinDB.cpp">
+      <ObjectFileName>$(IntDir)libmw_db_CoinDB.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\db\LeafDB.cpp">
+      <ObjectFileName>$(IntDir)libmw_db_LeafDB.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\db\MMRInfoDB.cpp">
+      <ObjectFileName>$(IntDir)libmw_db_MMRInfoDB.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\file\File.cpp">
+      <ObjectFileName>$(IntDir)libmw_file_File.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\mmr\ILeafSet.cpp">
+      <ObjectFileName>$(IntDir)libmw_mmr_ILeafSet.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\mmr\IMMR.cpp">
+      <ObjectFileName>$(IntDir)libmw_mmr_IMMR.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\mmr\Index.cpp">
+      <ObjectFileName>$(IntDir)libmw_mmr_Index.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\mmr\LeafSet.cpp">
+      <ObjectFileName>$(IntDir)libmw_mmr_LeafSet.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\mmr\LeafSetCache.cpp">
+      <ObjectFileName>$(IntDir)libmw_mmr_LeafSetCache.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\mmr\MemMMR.cpp">
+      <ObjectFileName>$(IntDir)libmw_mmr_MemMMR.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\mmr\MMRUtil.cpp">
+      <ObjectFileName>$(IntDir)libmw_mmr_MMRUtil.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\mmr\PMMR.cpp">
+      <ObjectFileName>$(IntDir)libmw_mmr_PMMR.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\mmr\PMMRCache.cpp">
+      <ObjectFileName>$(IntDir)libmw_mmr_PMMRCache.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\mmr\PruneList.cpp">
+      <ObjectFileName>$(IntDir)libmw_mmr_PruneList.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\mmr\Segment.cpp">
+      <ObjectFileName>$(IntDir)libmw_mmr_Segment.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\models\block\Block.cpp">
+      <ObjectFileName>$(IntDir)libmw_models_block_Block.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\models\crypto\Commitment.cpp">
+      <ObjectFileName>$(IntDir)libmw_models_crypto_Commitment.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\models\crypto\PublicKey.cpp">
+      <ObjectFileName>$(IntDir)libmw_models_crypto_PublicKey.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\models\tx\Input.cpp">
+      <ObjectFileName>$(IntDir)libmw_models_tx_Input.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\models\tx\Kernel.cpp">
+      <ObjectFileName>$(IntDir)libmw_models_tx_Kernel.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\models\tx\Output.cpp">
+      <ObjectFileName>$(IntDir)libmw_models_tx_Output.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\models\tx\Transaction.cpp">
+      <ObjectFileName>$(IntDir)libmw_models_tx_Transaction.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\models\tx\TxBody.cpp">
+      <ObjectFileName>$(IntDir)libmw_models_tx_TxBody.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\node\BlockBuilder.cpp">
+      <ObjectFileName>$(IntDir)libmw_node_BlockBuilder.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\node\BlockValidator.cpp">
+      <ObjectFileName>$(IntDir)libmw_node_BlockValidator.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\node\CoinsViewCache.cpp">
+      <ObjectFileName>$(IntDir)libmw_node_CoinsViewCache.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\node\CoinsViewDB.cpp">
+      <ObjectFileName>$(IntDir)libmw_node_CoinsViewDB.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\wallet\Keychain.cpp">
+      <ObjectFileName>$(IntDir)libmw_wallet_Keychain.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libmw\src\wallet\TxBuilder.cpp">
+      <ObjectFileName>$(IntDir)libmw_wallet_TxBuilder.obj</ObjectFileName>
+    </ClCompile>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="..\common.vcxproj" />
+</Project>

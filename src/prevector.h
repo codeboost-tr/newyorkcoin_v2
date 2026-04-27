@@ -113,9 +113,9 @@ public:
         const_iterator operator++(int) { const_iterator copy(*this); ++(*this); return copy; }
         const_iterator operator--(int) { const_iterator copy(*this); --(*this); return copy; }
         difference_type friend operator-(const_iterator a, const_iterator b) { return (&(*a) - &(*b)); }
-        const_iterator operator+(size_type n) { return const_iterator(ptr + n); }
+        const_iterator operator+(size_type n) const { return const_iterator(ptr + n); }
         const_iterator& operator+=(size_type n) { ptr += n; return *this; }
-        const_iterator operator-(size_type n) { return const_iterator(ptr - n); }
+        const_iterator operator-(size_type n) const { return const_iterator(ptr - n); }
         const_iterator& operator-=(size_type n) { ptr -= n; return *this; }
         bool operator==(const_iterator x) const { return ptr == x.ptr; }
         bool operator!=(const_iterator x) const { return ptr != x.ptr; }

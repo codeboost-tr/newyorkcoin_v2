@@ -12,5 +12,5 @@ static const uint8_t chainparams_seed_main[] = {
     /* 24.52.248.184:17020   */ 0x01,0x04,0x18,0x34,0xf8,0xb8,0x42,0x7c,
     /* 74.208.146.8:17020    */ 0x01,0x04,0x4a,0xd0,0x92,0x08,0x42,0x7c,
 };
-static const uint8_t chainparams_seed_test[] = {};
+static const uint8_t chainparams_seed_test[] = {0};
 #endif // BITCOIN_CHAINPARAMSSEEDS_H

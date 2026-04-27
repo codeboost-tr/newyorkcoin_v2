@@ -25,8 +25,10 @@ class fixed_sized_cache
     using Callback =
         typename std::function<void(const Key &key, const Value &value)>;
 
+    static void NoOpErase(const Key &, const Value &) {}
+
     fixed_sized_cache(size_t max_size, const Policy &policy = Policy(),
-                      Callback OnErase = [](const Key &, const Value &) {})
+                      Callback OnErase = NoOpErase)
         : cache_policy(policy), max_cache_size(max_size),
           OnEraseCallback(OnErase)
     {

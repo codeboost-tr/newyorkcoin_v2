@@ -5,6 +5,7 @@
 #ifndef BITCOIN_SCHEDULER_H
 #define BITCOIN_SCHEDULER_H
 
+#include <chrono>
 #include <condition_variable>
 #include <functional>
 #include <list>

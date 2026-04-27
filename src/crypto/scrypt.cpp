@@ -32,7 +32,17 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <openssl/sha.h>
+#include <crypto/sha256.h>
+
+// Compatibility shim: map OpenSSL SHA256_CTX API to CSHA256
+typedef CSHA256 SHA256_CTX;
+static inline int SHA256_Init(SHA256_CTX *ctx) { ctx->Reset(); return 1; }
+static inline int SHA256_Update(SHA256_CTX *ctx, const void *data, size_t len) {
+    ctx->Write((const unsigned char*)data, len); return 1;
+}
+static inline int SHA256_Final(unsigned char *md, SHA256_CTX *ctx) {
+    ctx->Finalize(md); return 1;
+}
 
 #if defined(USE_SSE2) && !defined(USE_SSE2_ALWAYS)
 #ifdef _MSC_VER
@@ -188,7 +198,10 @@ PBKDF2_SHA256(const uint8_t *passwd, size_t passwdlen, const uint8_t *salt,
 
 #define ROTL(a, b) (((a) << (b)) | ((a) >> (32 - (b))))
 
-__attribute__((no_sanitize("integer")))
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4307) // integral constant overflow (intentional wrapping)
+#endif
 static inline void xor_salsa8(uint32_t B[16], const uint32_t Bx[16])
 {
 	uint32_t x00,x01,x02,x03,x04,x05,x06,x07,x08,x09,x10,x11,x12,x13,x14,x15;
@@ -254,6 +267,9 @@ static inline void xor_salsa8(uint32_t B[16], const uint32_t Bx[16])
 	B[14] += x14;
 	B[15] += x15;
 }
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 void scrypt_1024_1_1_256_sp_generic(const char *input, char *output, char *scratchpad)
 {
