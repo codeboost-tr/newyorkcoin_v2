@@ -105,6 +105,9 @@ void TxAssembler::CreateTransaction_Locked(
 {
     AssertLockHeld(m_wallet.cs_wallet);
 
+    // Use version 1 transactions: miners on the NYC network run legacy software
+    // that does not include version 2 transactions in block templates.
+    new_tx.tx.nVersion = 1;
     new_tx.tx.nLockTime = GetLocktimeForNewTransaction();
 
     m_wallet.AvailableCoins(new_tx.available_coins, true, &new_tx.coin_control, 1, MAX_MONEY, MAX_MONEY, 0);
