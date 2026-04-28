@@ -331,6 +331,7 @@ jobs:
           ../dist/configure \
             --enable-cxx --disable-shared --with-pic \
             --prefix="$BDB_PREFIX" \
+            --with-mutex=POSIX/pthreads/library \
             CC=clang CXX=clang++
           make -j$(sysctl -n hw.logicalcpu)
           make install
