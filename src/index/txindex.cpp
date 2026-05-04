@@ -239,7 +239,13 @@ bool TxIndex::FindTx(const uint256& tx_hash, uint256& block_hash, CTransactionRe
     if (file.IsNull()) {
         return error("%s: OpenBlockFile failed", __func__);
     }
-    CBlockHeader header;
+    // Use CBlockHeaderAndAuxPow instead of CBlockHeader so that the full
+    // on-disk header (80-byte base header + variable-length AuxPoW for
+    // merged-mined blocks) is consumed before fseek(nTxOffset) below.
+    // With a bare CBlockHeader read the file pointer would land inside the
+    // AuxPoW data and the subsequent transaction deserialisation would fail
+    // with "ReadCompactSize(): size too large".
+    CBlockHeaderAndAuxPow header;
     try {
         file >> header;
         if (fseek(file.Get(), postx.nTxOffset, SEEK_CUR)) {

@@ -209,4 +209,31 @@ struct CBlockLocator
 // The include guards on both files prevent infinite recursion.
 #include <auxpow.h>
 
+/**
+ * A block header with the optional AuxPoW proof but WITHOUT transactions.
+ *
+ * Used by TxIndex::FindTx() to read past the on-disk block header, which is
+ * variable-length for AuxPoW-flagged blocks.  The on-disk layout is:
+ *   [CBlockHeader (80 bytes)] [CAuxPow (variable)] [vtx_count] [txs...]
+ * Reading a plain CBlockHeader only consumes 80 bytes, leaving the file
+ * positioned inside the AuxPoW data rather than at the transaction list.
+ * Using this struct instead consumes the full header so that the subsequent
+ * fseek(nTxOffset) correctly lands at the target transaction.
+ */
+struct CBlockHeaderAndAuxPow : public CBlockHeader
+{
+    std::shared_ptr<CAuxPow> auxpow;
+
+    SERIALIZE_METHODS(CBlockHeaderAndAuxPow, obj)
+    {
+        READWRITEAS(CBlockHeader, obj);
+        if (obj.IsAuxpow()) {
+            SER_READ(obj, obj.auxpow = std::make_shared<CAuxPow>());
+            if (obj.auxpow) READWRITE(*obj.auxpow);
+        } else {
+            SER_READ(obj, obj.auxpow.reset());
+        }
+    }
+};
+
 #endif // BITCOIN_PRIMITIVES_BLOCK_H
