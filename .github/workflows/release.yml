@@ -333,9 +333,11 @@ jobs:
           # top level declarator" inside <atomic>. Rename BDB's internal symbols
           # (definition + all call sites) before configuring, matching Bitcoin
           # Core's BDB clang patch.
-          ATOMIC_FILES=$(grep -rl 'atomic_init' db-4.8.30.NC/src)
+          # BDB 4.8's tarball puts its source dirs (dbinc/, mp/, txn/, ...)
+          # directly under db-4.8.30.NC/ — there is no src/ subdirectory.
+          ATOMIC_FILES=$(grep -rl 'atomic_init' db-4.8.30.NC)
           [ -n "$ATOMIC_FILES" ] && perl -0pi -e 's/\batomic_init\b/atomic_init_db/g' $ATOMIC_FILES
-          CMPX_FILES=$(grep -rl '__atomic_compare_exchange' db-4.8.30.NC/src)
+          CMPX_FILES=$(grep -rl '__atomic_compare_exchange' db-4.8.30.NC)
           [ -n "$CMPX_FILES" ] && perl -0pi -e 's/\b__atomic_compare_exchange\b/__atomic_compare_exchange_db/g' $CMPX_FILES
           cd db-4.8.30.NC/build_unix
           ../dist/configure \
