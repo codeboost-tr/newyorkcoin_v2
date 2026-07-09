@@ -11,6 +11,8 @@
 
 #include <stdint.h>
 
+#include <boost/version.hpp>
+
 #ifndef WIN32
 #include <sys/stat.h>
 #endif
@@ -627,7 +629,14 @@ bool BerkeleyDatabase::Backup(const std::string& strDest) const
                         return false;
                     }
 
+                    // Boost renamed copy_option->copy_options and
+                    // overwrite_if_exists->overwrite_existing in 1.74; depends still ships
+                    // 1.70 (Windows) while Homebrew ships >=1.90 (macOS, old name removed).
+#if BOOST_VERSION >= 107400
+                    fs::copy_file(pathSrc, pathDest, fs::copy_options::overwrite_existing);
+#else
                     fs::copy_file(pathSrc, pathDest, fs::copy_option::overwrite_if_exists);
+#endif
                     LogPrintf("copied %s to %s\n", strFile, pathDest.string());
                     return true;
                 } catch (const fs::filesystem_error& e) {
