@@ -320,7 +320,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install automake libtool pkg-config boost openssl@3 \
-            miniupnpc qt@5 qrencode libnatpmp libevent
+            miniupnpc qt@5 qrencode libnatpmp libevent fmt
 
       - name: Build BDB 4.8 from source
         run: |
