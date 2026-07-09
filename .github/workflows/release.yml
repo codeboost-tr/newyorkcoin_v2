@@ -327,6 +327,16 @@ jobs:
           # berkeley-db@4 was disabled in Homebrew on 2025-08-24; build from source.
           BDB_PREFIX="/tmp/bdb4"
           curl -fsSL https://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz | tar xz
+          # BDB 4.8 (2010) defines an `atomic_init` macro and a static
+          # `__atomic_compare_exchange` that collide with modern libc++/clang
+          # builtins (Xcode 16), breaking the C++ build with "expected ';' after
+          # top level declarator" inside <atomic>. Rename BDB's internal symbols
+          # (definition + all call sites) before configuring, matching Bitcoin
+          # Core's BDB clang patch.
+          ATOMIC_FILES=$(grep -rl 'atomic_init' db-4.8.30.NC/src)
+          [ -n "$ATOMIC_FILES" ] && perl -0pi -e 's/\batomic_init\b/atomic_init_db/g' $ATOMIC_FILES
+          CMPX_FILES=$(grep -rl '__atomic_compare_exchange' db-4.8.30.NC/src)
+          [ -n "$CMPX_FILES" ] && perl -0pi -e 's/\b__atomic_compare_exchange\b/__atomic_compare_exchange_db/g' $CMPX_FILES
           cd db-4.8.30.NC/build_unix
           ../dist/configure \
             --enable-cxx --disable-shared --with-pic \
