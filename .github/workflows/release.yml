@@ -374,8 +374,8 @@ jobs:
             --with-boost-libdir="$(brew --prefix boost)/lib" \
             --with-incompatible-bdb \
             CXXFLAGS="-O2" \
-            CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$BDB_PREFIX/include -I$(brew --prefix boost)/include -I$(brew --prefix miniupnpc)/include" \
-            LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$BDB_PREFIX/lib -L$(brew --prefix boost)/lib -L$(brew --prefix libevent)/lib"
+            CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$BDB_PREFIX/include -I$(brew --prefix boost)/include -I$(brew --prefix miniupnpc)/include -I$(brew --prefix fmt)/include" \
+            LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$BDB_PREFIX/lib -L$(brew --prefix boost)/lib -L$(brew --prefix libevent)/lib -L$(brew --prefix fmt)/lib"
 
       - name: Build
         run: FORCE_GIT_TAG="${{ steps.tag.outputs.tag }}" make -j$(sysctl -n hw.logicalcpu)
