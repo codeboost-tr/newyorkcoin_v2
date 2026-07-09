@@ -20,12 +20,19 @@ fi
 
 GIT_TAG=""
 GIT_COMMIT=""
-if [ "${BITCOIN_GENBUILD_NO_GIT}" != "1" ] && [ -e "$(command -v git)" ] && [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ]; then
+if [ -n "${FORCE_GIT_TAG}" ]; then
+    # Release CI passes the exact tag being built. This bypasses the describe/
+    # dirty heuristics below, which mis-fire on this repo: release tags are
+    # lightweight (git describe --abbrev=0 ignores them) and CI checkouts can
+    # show a spurious 'dirty' tree from line-ending renormalization.
+    GIT_TAG="${FORCE_GIT_TAG}"
+elif [ "${BITCOIN_GENBUILD_NO_GIT}" != "1" ] && [ -e "$(command -v git)" ] && [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ]; then
     # clean 'dirty' status of touched files that haven't been modified
     git diff >/dev/null 2>/dev/null
 
-    # if latest commit is tagged and not dirty, then override using the tag name
-    RAWDESC=$(git describe --abbrev=0 2>/dev/null)
+    # if latest commit is tagged and not dirty, then override using the tag name.
+    # Use --tags so lightweight tags (this repo's release convention) are honored.
+    RAWDESC=$(git describe --tags --abbrev=0 2>/dev/null)
     if [ "$(git rev-parse HEAD)" = "$(git rev-list -1 $RAWDESC 2>/dev/null)" ]; then
         git diff-index --quiet HEAD -- && GIT_TAG=$RAWDESC
     fi

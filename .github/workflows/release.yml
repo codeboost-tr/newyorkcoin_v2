@@ -59,9 +59,7 @@ jobs:
             CXXFLAGS="-O2"
 
       - name: Build
-        run: |
-          git update-index --refresh || true
-          make -j$(nproc)
+        run: FORCE_GIT_TAG="${{ steps.tag.outputs.tag }}" make -j$(nproc)
 
       - name: Package
         id: pkg
@@ -119,9 +117,7 @@ jobs:
             CXXFLAGS="-O2"
 
       - name: Build
-        run: |
-          git update-index --refresh || true
-          make -j$(nproc)
+        run: FORCE_GIT_TAG="${{ steps.tag.outputs.tag }}" make -j$(nproc)
 
       - name: Package
         id: pkg
@@ -208,9 +204,7 @@ jobs:
             CXXFLAGS="-O2"
 
       - name: Build
-        run: |
-          git update-index --refresh || true
-          make -j$(nproc)
+        run: FORCE_GIT_TAG="${{ steps.tag.outputs.tag }}" make -j$(nproc)
 
       - name: Generate NSIS wizard bitmap
         run: |
@@ -372,9 +366,7 @@ jobs:
             LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$BDB_PREFIX/lib -L$(brew --prefix boost)/lib -L$(brew --prefix libevent)/lib"
 
       - name: Build
-        run: |
-          git update-index --refresh || true
-          make -j$(sysctl -n hw.logicalcpu)
+        run: FORCE_GIT_TAG="${{ steps.tag.outputs.tag }}" make -j$(sysctl -n hw.logicalcpu)
 
       - name: Create DMG
         run: make deploy || echo "make deploy failed; will package binaries directly"
