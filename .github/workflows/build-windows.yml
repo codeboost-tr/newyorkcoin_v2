@@ -3,7 +3,13 @@ name: Windows Build
 on:
   push:
     branches: [ nyc-core-v2.0 ]
+  pull_request:
+    branches: [ nyc-core-v2.0 ]
   workflow_dispatch:
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-windows:

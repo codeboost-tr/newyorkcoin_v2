@@ -3,7 +3,13 @@ name: Linux Build
 on:
   push:
     branches: [ nyc-core-v2.0 ]
+  pull_request:
+    branches: [ nyc-core-v2.0 ]
   workflow_dispatch:
+
+concurrency:
+  group: linux-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-linux:
@@ -12,6 +18,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: linux-nogui
 
       - name: Install build dependencies
         run: |
@@ -37,6 +48,7 @@ jobs:
             --with-gui=no \
             --with-incompatible-bdb \
             --enable-reduce-exports \
+            CC="ccache gcc" CXX="ccache g++" \
             CXXFLAGS="-O2"
 
       - name: Build
@@ -114,3 +126,51 @@ jobs:
           name: NewYorkCoin-Core-Linux-Qt
           path: newyorkcoin-linux-qt-x86_64.tar.gz
           retention-days: 30
+
+  # Discovery job (Phase 1.2): build WITH unit tests and run `make check`.
+  # Not yet a required gate — it exists to surface which unit tests were broken
+  # during the fork so they can be fixed and then made mandatory.
+  test-linux:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: linux-test
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y \
+            build-essential libtool autotools-dev automake pkg-config bsdmainutils curl \
+            libboost-system-dev libboost-filesystem-dev libboost-thread-dev libboost-test-dev \
+            libdb5.3-dev libdb5.3++-dev \
+            libssl-dev \
+            libevent-dev \
+            libsqlite3-dev \
+            libminiupnpc-dev \
+            libzmq3-dev \
+            libfmt-dev \
+            python3
+
+      - name: Configure with unit tests enabled
+        run: |
+          autoreconf -fi
+          ./configure \
+            --enable-tests \
+            --disable-bench \
+            --with-gui=no \
+            --with-incompatible-bdb \
+            --enable-reduce-exports \
+            CC="ccache gcc" CXX="ccache g++" \
+            CXXFLAGS="-O2"
+
+      - name: Build (including test_nyc)
+        run: make -j$(nproc)
+
+      - name: Run unit tests (make check)
+        run: make check VERBOSE=1
