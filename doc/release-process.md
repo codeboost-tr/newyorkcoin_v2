@@ -1,6 +1,52 @@
 Release Process
 ====================
 
+> **Note:** The sections below this NewYorkCoin-specific preamble are still the
+> upstream Bitcoin/Litecoin release process (gitian, IRC pings, etc.) and will
+> be rewritten for NewYorkCoin in a later phase. Until then, follow the version
+> policy in this preamble.
+
+## Version numbering — single source of truth
+
+The **only** place the version number is defined is the macro block at the top
+of [`configure.ac`](../configure.ac):
+
+```
+define(_CLIENT_VERSION_MAJOR,   2)
+define(_CLIENT_VERSION_MINOR,   1)
+define(_CLIENT_VERSION_REVISION, 1)
+define(_CLIENT_VERSION_BUILD,   0)
+define(_CLIENT_VERSION_RC,      1)   # 0 = final release, N = "rcN"
+define(_CLIENT_VERSION_IS_RELEASE, true)  # true for any tagged release, incl. RCs
+```
+
+Everything else (the `nycd -version` string, the Qt about box, `AC_INIT`) is
+derived from these macros — never hard-code a version anywhere else.
+
+Rules:
+
+- A tagged build (final **or** release candidate) uses
+  `_CLIENT_VERSION_IS_RELEASE = true`, so the reported version is clean
+  (e.g. `v2.1.1rc1`) with no git-hash / `-dirty` suffix.
+- Set `_CLIENT_VERSION_IS_RELEASE = false` only for development builds between
+  tags, so they self-identify as unofficial.
+- `_CLIENT_VERSION_RC = 0` for a final release; `= N` produces the `rcN`
+  suffix.
+
+### Bump checklist (run for every tag)
+
+1. Edit the macro block in `configure.ac` (above) — this one file only.
+2. Update the version string on the first line of [`README.md`](../README.md)
+   to match exactly (e.g. `NewYorkCoin Core v2.1.1-rc1`).
+3. Update `build_msvc/bitcoin_config.h` (`CLIENT_VERSION_*`, `PACKAGE_VERSION`,
+   `PACKAGE_STRING`) to match, since the MSVC build does not read `configure.ac`.
+4. Confirm consistency:
+   `git grep -nE 'v?2\.[0-9]+\.[0-9]+' README.md configure.ac build_msvc/bitcoin_config.h`
+5. Tag the commit `v<major>.<minor>.<revision>[-rcN]` and publish the GitHub
+   release with the identical string. Do not leave a final `vX.Y.Z` and an
+   `vX.Y.Z-rcN` release both marked "Latest".
+
+
 ## Branch updates
 
 ### Before every release candidate

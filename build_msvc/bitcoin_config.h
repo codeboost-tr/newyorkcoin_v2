@@ -18,10 +18,13 @@
 #define CLIENT_VERSION_MAJOR 2
 
 /* Minor version */
-#define CLIENT_VERSION_MINOR 0
+#define CLIENT_VERSION_MINOR 1
 
 /* Build revision */
-#define CLIENT_VERSION_REVISION 8
+#define CLIENT_VERSION_REVISION 1
+
+/* Release candidate number (0 = final release) */
+#define CLIENT_VERSION_RC 1
 
 /* Copyright holder(s) before %s replacement */
 #define COPYRIGHT_HOLDERS "The %s developers"
@@ -247,22 +250,22 @@
 #define LT_OBJDIR ".libs/"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "https://github.com/litecoin-project/litecoin/issues"
+#define PACKAGE_BUGREPORT "https://github.com/jamesburrell2/newyorkcoin_v2/issues"
 
 /* Define to the full name of this package. */
-#define PACKAGE_NAME "Litecoin Core"
+#define PACKAGE_NAME "NewYorkCoin Core"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "Litecoin Core 0.21.3"
+#define PACKAGE_STRING "NewYorkCoin Core 2.1.1rc1"
 
 /* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME "litecoin"
+#define PACKAGE_TARNAME "newyorkcoin"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL "https://litecoin.org/"
+#define PACKAGE_URL "https://nycoin.money/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.21.3"
+#define PACKAGE_VERSION "2.1.1rc1"
 
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */
