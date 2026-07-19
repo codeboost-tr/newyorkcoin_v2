@@ -1,3 +1,7 @@
+# Local maintainer notes / secrets — never commit
+yapılacaklar/
+*token*.md
+
 *.tar.gz
 
 *.exe

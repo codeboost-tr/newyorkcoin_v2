@@ -1,11 +1,72 @@
-src/clientversion.cpp export-subst
+# NewYorkCoin Core — line ending and diff policy
+#
+# Policy: everything Git detects as text is stored in the repository with LF.
+# Checkout is LF on every platform, so no core.autocrlf magic is required.
+# Windows maintainers should still set `git config --global core.autocrlf input`
+# as a safety net — see CONTRIBUTING.md.
+#
+# After changing any rule in this file, run `git add --renormalize .`.
 
-# Ensure shell scripts always use LF line endings
-*.sh text eol=lf
-*.m4 text eol=lf
-configure.ac text eol=lf
-Makefile text eol=lf
-depends/config.guess text eol=lf
-depends/config.sub text eol=lf
+# ---------------------------------------------------------------------------
+# Default: auto-detect text vs binary, normalize text to LF in the repository
+# ---------------------------------------------------------------------------
+* text=auto eol=lf
+
+# ---------------------------------------------------------------------------
+# Explicit LF — build/toolchain files that break if they ever gain a CR
+# ---------------------------------------------------------------------------
+*.sh                   text eol=lf
+*.m4                   text eol=lf
+*.py                   text eol=lf
+*.am                   text eol=lf
+*.ac                   text eol=lf
+*.include              text eol=lf
+*.mk                   text eol=lf
+configure.ac           text eol=lf
+Makefile               text eol=lf
+Makefile.am            text eol=lf
+depends/config.guess   text eol=lf
+depends/config.sub     text eol=lf
 depends/config.site.in text eol=lf
-*.py text eol=lf
+
+# ---------------------------------------------------------------------------
+# Explicit CRLF — consumed by Windows-only tooling that expects it
+# ---------------------------------------------------------------------------
+*.sln             text eol=crlf
+*.vcxproj         text eol=crlf
+*.vcxproj.filters text eol=crlf
+*.props           text eol=crlf
+*.bat             text eol=crlf
+*.cmd             text eol=crlf
+*.rc              text eol=crlf
+*.nsi             text eol=crlf
+
+# ---------------------------------------------------------------------------
+# Binary — never normalized, never diffed as text
+# ---------------------------------------------------------------------------
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.icns  binary
+*.ttf   binary
+*.otf   binary
+*.raw   binary
+*.dat   binary
+*.bin   binary
+*.der   binary
+*.o     binary
+*.a     binary
+*.so    binary
+*.dll   binary
+*.dylib binary
+*.exe   binary
+
+# SVG is text (worth diffing) but must stay LF
+*.svg   text eol=lf
+
+# ---------------------------------------------------------------------------
+# Export / substitution
+# ---------------------------------------------------------------------------
+src/clientversion.cpp export-subst

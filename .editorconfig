@@ -1,0 +1,59 @@
+# NewYorkCoin Core — editor defaults
+# https://editorconfig.org
+#
+# Keeps line endings and whitespace consistent across editors so that
+# .gitattributes normalization never has to undo an editor's guess.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# C/C++ sources follow src/.clang-format (4 spaces, no tabs)
+[*.{c,cpp,h,hpp,cc}]
+indent_style = space
+indent_size = 4
+
+[*.py]
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+[*.{json,js,ts,jsx,tsx,css,qss,scss,html}]
+indent_style = space
+indent_size = 2
+
+[*.sh]
+indent_style = space
+indent_size = 2
+
+# Makefiles require real tabs
+[{Makefile,Makefile.*,*.mk,*.am,*.include}]
+indent_style = tab
+
+# Qt Designer forms are machine-generated
+[*.ui]
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+# Windows-only tooling expects CRLF
+[*.{sln,vcxproj,vcxproj.filters,props,bat,cmd,rc,nsi}]
+end_of_line = crlf
+
+# Do not reformat vendored / imported trees
+[{src/leveldb/**,src/secp256k1/**,src/univalue/**,src/crc32c/**,depends/patches/**}]
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+# Patches and diffs are byte-exact
+[*.{patch,diff}]
+trim_trailing_whitespace = false
+insert_final_newline = false
