@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <policy/policy.h>
+#include <policy/settings.h>
 #include <primitives/block.h>
 #include <txmempool.h>
 #include <util/system.h>
@@ -473,7 +474,12 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest)
     BOOST_CHECK(!pool.exists(tx3.GetHash()));
 
     CFeeRate maxFeeRateRemoved(25000, GetVirtualTransactionSize(CTransaction(tx3)) + GetVirtualTransactionSize(CTransaction(tx2)), 0);
-    BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), maxFeeRateRemoved.GetFeePerK() + 1000);
+    // NewYorkCoin relays with a zero-fee policy, so the incremental relay fee that
+    // the rolling minimum is bumped by (and floored at) is 0 rather than upstream's
+    // 1000. Express the expectations in terms of the policy instead of hardcoding it.
+    const CAmount incremental_fee = ::incrementalRelayFee.GetFeePerK();
+    const CAmount rolling_fee_start = maxFeeRateRemoved.GetFeePerK() + incremental_fee;
+    BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), rolling_fee_start);
 
     CMutableTransaction tx4 = CMutableTransaction();
     tx4.vin.resize(2);
@@ -550,28 +556,30 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest)
     CBlock block;
     SetMockTime(42);
     SetMockTime(42 + CTxMemPool::ROLLING_FEE_HALFLIFE);
-    BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), maxFeeRateRemoved.GetFeePerK() + 1000);
+    BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), rolling_fee_start);
     // ... we should keep the same min fee until we get a block
     pool.removeForBlock(block, 1, nullptr);
     SetMockTime(42 + 2*CTxMemPool::ROLLING_FEE_HALFLIFE);
-    BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), llround((maxFeeRateRemoved.GetFeePerK() + 1000)/2.0));
+    BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), llround(rolling_fee_start/2.0));
     // ... then feerate should drop 1/2 each halflife
 
     SetMockTime(42 + 2*CTxMemPool::ROLLING_FEE_HALFLIFE + CTxMemPool::ROLLING_FEE_HALFLIFE/2);
-    BOOST_CHECK_EQUAL(pool.GetMinFee(pool.DynamicMemoryUsage() * 5 / 2).GetFeePerK(), llround((maxFeeRateRemoved.GetFeePerK() + 1000)/4.0));
+    BOOST_CHECK_EQUAL(pool.GetMinFee(pool.DynamicMemoryUsage() * 5 / 2).GetFeePerK(), llround(rolling_fee_start/4.0));
     // ... with a 1/2 halflife when mempool is < 1/2 its target size
 
     SetMockTime(42 + 2*CTxMemPool::ROLLING_FEE_HALFLIFE + CTxMemPool::ROLLING_FEE_HALFLIFE/2 + CTxMemPool::ROLLING_FEE_HALFLIFE/4);
-    BOOST_CHECK_EQUAL(pool.GetMinFee(pool.DynamicMemoryUsage() * 9 / 2).GetFeePerK(), llround((maxFeeRateRemoved.GetFeePerK() + 1000)/8.0));
+    BOOST_CHECK_EQUAL(pool.GetMinFee(pool.DynamicMemoryUsage() * 9 / 2).GetFeePerK(), llround(rolling_fee_start/8.0));
     // ... with a 1/4 halflife when mempool is < 1/4 its target size
 
     SetMockTime(42 + 7*CTxMemPool::ROLLING_FEE_HALFLIFE + CTxMemPool::ROLLING_FEE_HALFLIFE/2 + CTxMemPool::ROLLING_FEE_HALFLIFE/4);
-    BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), 1000);
-    // ... but feerate should never drop below 1000
+    BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), llround(rolling_fee_start/256.0));
+    // ... five more full halflives. Upstream floors the rolling fee at the
+    // incremental relay fee here; with NYC's zero-fee policy there is no floor,
+    // so it simply keeps halving.
 
     SetMockTime(42 + 8*CTxMemPool::ROLLING_FEE_HALFLIFE + CTxMemPool::ROLLING_FEE_HALFLIFE/2 + CTxMemPool::ROLLING_FEE_HALFLIFE/4);
-    BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), 0);
-    // ... unless it has gone all the way to 0 (after getting past 1000/2)
+    BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), llround(rolling_fee_start/512.0));
+    // ... and it only reaches 0 once rounding takes it there.
 
     SetMockTime(0);
 }

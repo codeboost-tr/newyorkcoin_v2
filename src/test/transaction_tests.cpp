@@ -672,16 +672,14 @@ BOOST_AUTO_TEST_CASE(test_IsStandard)
     std::string reason;
     BOOST_CHECK(IsStandardTx(CTransaction(t), reason));
 
-    // Check dust with default relay fee:
+    // Check dust with default relay fee: NewYorkCoin relays with a zero-fee
+    // policy (DUST_RELAY_TX_FEE == 0), so the default dust threshold is 0 and
+    // no output is ever rejected as dust. The dust logic itself is still
+    // covered below, with an explicit non-zero relay fee.
     CAmount nDustThreshold = 182 * dustRelayFee.GetFeePerK()/1000;
-    BOOST_CHECK_EQUAL(nDustThreshold, 5460);
-    // dust:
-    t.vout[0].nValue = nDustThreshold - 1;
-    reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction(t), reason));
-    BOOST_CHECK_EQUAL(reason, "dust");
-    // not dust:
-    t.vout[0].nValue = nDustThreshold;
+    BOOST_CHECK_EQUAL(nDustThreshold, 0);
+    // not dust, down to a single satoshi:
+    t.vout[0].nValue = 1;
     BOOST_CHECK(IsStandardTx(CTransaction(t), reason));
 
     // Disallowed nVersion
