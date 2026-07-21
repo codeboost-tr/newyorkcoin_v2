@@ -82,6 +82,20 @@ static CBlock CreateGenesisBlock(uint32_t nTime,
                               nVersion, genesisReward);
 }
 
+/**
+ * A deployment height far beyond any reachable block height, used to keep a
+ * deployment permanently disabled on a chain.
+ *
+ * Rounded down to a multiple of the confirmation window: BIP9/BIP8 state is
+ * only ever evaluated on window boundaries (see versionbits.cpp), so a height
+ * that is not a multiple of nMinerConfirmationWindow silently takes effect at
+ * the next boundary instead of the one written down.
+ */
+static int64_t DisabledDeploymentHeight(uint32_t confirmation_window)
+{
+    return (std::numeric_limits<int>::max() / 2 / confirmation_window) * confirmation_window;
+}
+
 // ---------------------------------------------------------------------------
 // Mainnet
 // ---------------------------------------------------------------------------
@@ -177,22 +191,29 @@ public:
 
         // Taproot (BIPs 340-342 — Schnorr + MAST + TapScript):
         //   Activated via miner signaling once ≥75% of blocks in any 2880-block
-        //   window set version bit 2.  Signaling starts at block 14,000,000
+        //   window set version bit 2.  Signaling starts at block 14,002,560
         //   (after SegWit is live at 13,500,000 — Taproot requires SegWit).
-        //   Timeout at block 16,000,000 gives miners ~700 days to activate;
-        //   if not achieved by then, a new deployment window can be scheduled.
+        //   Deployment heights MUST be multiples of nMinerConfirmationWindow:
+        //   GetStateFor() only evaluates on window boundaries, so an unaligned
+        //   height silently takes effect at the next boundary instead.
+        //   These are height-based (BIP8 LOT=true style) deployments: reaching
+        //   the timeout height does NOT abandon the deployment — versionbits.cpp
+        //   moves it to LOCKED_IN and then ACTIVE regardless of signaling. Block
+        //   16,001,280 is a forced-activation height, not a give-up height.
         //   v1.x nodes see Taproot outputs as anyone-can-spend; they remain
         //   fully on the same chain and can spend non-Taproot outputs normally.
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].bit           = 2;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nStartHeight  = 14000000;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nTimeoutHeight = 16000000;
+        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nStartHeight  = 14002560;
+        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nTimeoutHeight = 16001280;
 
         // MWEB (MimbleWimble Extension Blocks): activated after Taproot signaling
-        // begins. Miners signal on bit 4 between heights 15,000,000–17,000,000.
+        // begins. Miners signal on bit 4 between heights 15,001,920–17,000,640
+        // (window-aligned, see the Taproot note above — 17,000,640 likewise
+        // force-activates rather than abandoning the deployment).
         // Threshold: 2160/2880 blocks per period (same as Taproot).
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].bit           = 4;
-        consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nStartHeight  = 15000000;
-        consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nTimeoutHeight = 17000000;
+        consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nStartHeight  = 15001920;
+        consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nTimeoutHeight = 17000640;
 
         // ── Chain work / assume-valid ────────────────────────────────────────
         // Set to zero for Phase 2 clean start. Update before mainnet release.
@@ -322,15 +343,15 @@ public:
 
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].bit          = 2;
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nStartHeight =
-            std::numeric_limits<int>::max() / 2;
+            DisabledDeploymentHeight(consensus.nMinerConfirmationWindow);
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nTimeoutHeight =
-            std::numeric_limits<int>::max() / 2;
+            DisabledDeploymentHeight(consensus.nMinerConfirmationWindow);
 
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].bit          = 4;
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nStartHeight =
-            std::numeric_limits<int>::max() / 2;
+            DisabledDeploymentHeight(consensus.nMinerConfirmationWindow);
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nTimeoutHeight =
-            std::numeric_limits<int>::max() / 2;
+            DisabledDeploymentHeight(consensus.nMinerConfirmationWindow);
 
         consensus.nMinimumChainWork  = uint256S("0x00");
         consensus.defaultAssumeValid = uint256S(
@@ -424,14 +445,16 @@ public:
             Consensus::BIP9Deployment::NO_TIMEOUT;
 
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].bit            = 2;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nStartHeight   = 1;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nTimeoutHeight = std::numeric_limits<int>::max() / 2;
+        // Window-aligned; a start height of 1 already took effect at the first
+        // window boundary, so this is the height that was actually in force.
+        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nStartHeight   = 2016;
+        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nTimeoutHeight = DisabledDeploymentHeight(consensus.nMinerConfirmationWindow);
 
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].bit          = 4;
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nStartHeight =
-            std::numeric_limits<int>::max() / 2;
+            DisabledDeploymentHeight(consensus.nMinerConfirmationWindow);
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nTimeoutHeight =
-            std::numeric_limits<int>::max() / 2;
+            DisabledDeploymentHeight(consensus.nMinerConfirmationWindow);
 
         // Signet genesis
         genesis = CreateGenesisBlock(1394102925, 2482334, 0x1e0ffff0, 1, 88 * COIN);
@@ -530,9 +553,9 @@ public:
 
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].bit          = 4;
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nStartHeight =
-            std::numeric_limits<int>::max() / 2;
+            DisabledDeploymentHeight(consensus.nMinerConfirmationWindow);
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nTimeoutHeight =
-            std::numeric_limits<int>::max() / 2;
+            DisabledDeploymentHeight(consensus.nMinerConfirmationWindow);
 
         consensus.nMinimumChainWork  = uint256{};
         consensus.defaultAssumeValid = uint256{};
