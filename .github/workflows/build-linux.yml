@@ -169,8 +169,21 @@ jobs:
             CC="ccache gcc" CXX="ccache g++" \
             CXXFLAGS="-O2"
 
-      - name: Build (including test_nyc)
+      # NOTE: the unit test binary is still named test_litecoin (fork leftover,
+      # rename tracked for the Phase 5 packaging pass).
+      - name: Build (including the unit test binary)
         run: make -j$(nproc)
 
+      # `-k` keeps going after the first failing suite so a single run produces a
+      # complete inventory of what the fork broke, instead of stopping at the first one.
       - name: Run unit tests (make check)
-        run: make check VERBOSE=1
+        run: make check -k VERBOSE=1
+
+      - name: Collect per-suite test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-logs
+          path: src/test/*.log
+          if-no-files-found: warn
+          retention-days: 14
