@@ -197,10 +197,19 @@ TestingSetup::~TestingSetup()
 
 TestChain100Setup::TestChain100Setup()
 {
-    // Generate a 100-block chain:
+    // Generate a 100-block chain.
+    //
+    // Upstream drives this loop with COINBASE_MATURITY because there the two
+    // happen to be equal. NewYorkCoin lowers COINBASE_MATURITY to 30, which
+    // silently shrank this fixture to a 30-block chain and broke everything
+    // that relies on the length this class promises - interfaces_tests indexes
+    // the active chain up to height 60 (reading out of bounds and segfaulting)
+    // and wallet_tests counts 100 coinbases. The chain length is part of the
+    // fixture's contract, so state it directly; 100 > COINBASE_MATURITY still
+    // leaves every coinbase in it mature.
     coinbaseKey.MakeNewKey(true);
     CScript scriptPubKey = CScript() << ToByteVector(coinbaseKey.GetPubKey()) << OP_CHECKSIG;
-    for (int i = 0; i < COINBASE_MATURITY; i++) {
+    for (int i = 0; i < 100; i++) {
         std::vector<CMutableTransaction> noTxns;
         CBlock b = CreateAndProcessBlock(noTxns, scriptPubKey);
         m_coinbase_txns.push_back(b.vtx[0]);

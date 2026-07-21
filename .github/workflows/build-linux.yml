@@ -184,6 +184,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-logs
-          path: src/test/*.log
+          path: |
+            src/test/*.log
+            src/wallet/test/*.log
           if-no-files-found: warn
           retention-days: 14
