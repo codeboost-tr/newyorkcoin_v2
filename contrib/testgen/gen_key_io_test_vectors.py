@@ -17,17 +17,21 @@ from base58 import b58encode_chk, b58decode_chk, b58chars
 import random
 from segwit_addr import bech32_encode, decode_segwit_address, convertbits, CHARSET, Encoding
 
-# key types
-PUBKEY_ADDRESS = 48
-SCRIPT_ADDRESS = 5
-SCRIPT_ADDRESS2 = 50
-PUBKEY_ADDRESS_TEST = 111
+# key types (NewYorkCoin, see src/chainparams.cpp base58Prefixes)
+# SCRIPT_ADDRESS is only accepted on decode; SCRIPT_ADDRESS2 is what
+# EncodeDestination() emits, so only the latter may be used to generate
+# valid vectors (key_io_valid_gen round-trips them).
+PUBKEY_ADDRESS = 60
+SCRIPT_ADDRESS = 52
+SCRIPT_ADDRESS2 = 22
+PUBKEY_ADDRESS_TEST = 113
 SCRIPT_ADDRESS_TEST = 196
 SCRIPT_ADDRESS_TEST2 = 58
 PUBKEY_ADDRESS_REGTEST = 111
 SCRIPT_ADDRESS_REGTEST = 196
-PRIVKEY = 176
-PRIVKEY_TEST = 239
+SCRIPT_ADDRESS_REGTEST2 = 58
+PRIVKEY = 188
+PRIVKEY_TEST = 241
 PRIVKEY_REGTEST = 239
 
 # script
@@ -62,8 +66,10 @@ templates = [
   ((SCRIPT_ADDRESS_TEST2,),   20, (),   (False, 'test',    None,  None), script_prefix, script_suffix),
   ((PUBKEY_ADDRESS_TEST,),    20, (),   (False, 'signet',  None,  None), pubkey_prefix, pubkey_suffix),
   ((SCRIPT_ADDRESS_TEST,),    20, (),   (False, 'signet',  None,  None), script_prefix, script_suffix),
+  ((SCRIPT_ADDRESS_TEST2,),   20, (),   (False, 'signet',  None,  None), script_prefix, script_suffix),
   ((PUBKEY_ADDRESS_REGTEST,), 20, (),   (False, 'regtest', None,  None), pubkey_prefix, pubkey_suffix),
   ((SCRIPT_ADDRESS_REGTEST,), 20, (),   (False, 'regtest', None,  None), script_prefix, script_suffix),
+  ((SCRIPT_ADDRESS_REGTEST2,),20, (),   (False, 'regtest', None,  None), script_prefix, script_suffix),
   ((PRIVKEY,),                32, (),   (True,  'main',    False, None), (),            ()),
   ((PRIVKEY,),                32, (1,), (True,  'main',    True,  None), (),            ()),
   ((PRIVKEY_TEST,),           32, (),   (True,  'test',    False, None), (),            ()),
@@ -73,45 +79,52 @@ templates = [
   ((PRIVKEY_REGTEST,),        32, (),   (True,  'regtest', False, None), (),            ()),
   ((PRIVKEY_REGTEST,),        32, (1,), (True,  'regtest', True,  None), (),            ())
 ]
+# Subset of `templates` used to emit *valid* vectors. The decode-only script
+# prefixes are excluded because key_io_valid_gen re-encodes every vector and
+# compares it to the input; EncodeDestination() only ever emits SCRIPT_ADDRESS2.
+# They stay in `templates` so is_valid() keeps treating them as valid, which in
+# turn keeps them out of the generated *invalid* vectors.
+decode_only_script_prefixes = {(SCRIPT_ADDRESS,), (SCRIPT_ADDRESS_TEST,), (SCRIPT_ADDRESS_REGTEST,)}
+valid_templates = [t for t in templates if t[0] not in decode_only_script_prefixes]
 # templates for valid bech32 sequences
 bech32_templates = [
   # hrp, version, witprog_size, metadata, encoding, output_prefix
-  ('ltc',    0, 20, (False, 'main',    None, True), Encoding.BECH32,  p2wpkh_prefix),
-  ('ltc',    0, 32, (False, 'main',    None, True), Encoding.BECH32,  p2wsh_prefix),
-  ('ltc',    1, 32, (False, 'main',    None, True), Encoding.BECH32M, p2tr_prefix),
-  ('ltc',    2,  2, (False, 'main',    None, True), Encoding.BECH32M, (OP_2, 2)),
-  ('tltc',    0, 20, (False, 'test',    None, True), Encoding.BECH32,  p2wpkh_prefix),
-  ('tltc',    0, 32, (False, 'test',    None, True), Encoding.BECH32,  p2wsh_prefix),
-  ('tltc',    1, 32, (False, 'test',    None, True), Encoding.BECH32M, p2tr_prefix),
-  ('tltc',    3, 16, (False, 'test',    None, True), Encoding.BECH32M, (OP_3, 16)),
-  ('tltc',    0, 20, (False, 'signet',  None, True), Encoding.BECH32,  p2wpkh_prefix),
-  ('tltc',    0, 32, (False, 'signet',  None, True), Encoding.BECH32,  p2wsh_prefix),
-  ('tltc',    1, 32, (False, 'signet',  None, True), Encoding.BECH32M, p2tr_prefix),
-  ('tltc',    3, 32, (False, 'signet',  None, True), Encoding.BECH32M, (OP_3, 32)),
-  ('rltc',  0, 20, (False, 'regtest', None, True), Encoding.BECH32,  p2wpkh_prefix),
-  ('rltc',  0, 32, (False, 'regtest', None, True), Encoding.BECH32,  p2wsh_prefix),
-  ('rltc',  1, 32, (False, 'regtest', None, True), Encoding.BECH32M, p2tr_prefix),
-  ('rltc', 16, 40, (False, 'regtest', None, True), Encoding.BECH32M, (OP_16, 40))
+  ('nyc',    0, 20, (False, 'main',    None, True), Encoding.BECH32,  p2wpkh_prefix),
+  ('nyc',    0, 32, (False, 'main',    None, True), Encoding.BECH32,  p2wsh_prefix),
+  ('nyc',    1, 32, (False, 'main',    None, True), Encoding.BECH32M, p2tr_prefix),
+  ('nyc',    2,  2, (False, 'main',    None, True), Encoding.BECH32M, (OP_2, 2)),
+  ('tnyc',    0, 20, (False, 'test',    None, True), Encoding.BECH32,  p2wpkh_prefix),
+  ('tnyc',    0, 32, (False, 'test',    None, True), Encoding.BECH32,  p2wsh_prefix),
+  ('tnyc',    1, 32, (False, 'test',    None, True), Encoding.BECH32M, p2tr_prefix),
+  ('tnyc',    3, 16, (False, 'test',    None, True), Encoding.BECH32M, (OP_3, 16)),
+  ('tnyc',    0, 20, (False, 'signet',  None, True), Encoding.BECH32,  p2wpkh_prefix),
+  ('tnyc',    0, 32, (False, 'signet',  None, True), Encoding.BECH32,  p2wsh_prefix),
+  ('tnyc',    1, 32, (False, 'signet',  None, True), Encoding.BECH32M, p2tr_prefix),
+  ('tnyc',    3, 32, (False, 'signet',  None, True), Encoding.BECH32M, (OP_3, 32)),
+  ('rnyc',  0, 20, (False, 'regtest', None, True), Encoding.BECH32,  p2wpkh_prefix),
+  ('rnyc',  0, 32, (False, 'regtest', None, True), Encoding.BECH32,  p2wsh_prefix),
+  ('rnyc',  1, 32, (False, 'regtest', None, True), Encoding.BECH32M, p2tr_prefix),
+  ('rnyc', 16, 40, (False, 'regtest', None, True), Encoding.BECH32M, (OP_16, 40))
 ]
 # templates for invalid bech32 sequences
 bech32_ng_templates = [
   # hrp, version, witprog_size, encoding, invalid_bech32, invalid_checksum, invalid_char
   ('tc',    0, 20, Encoding.BECH32,  False, False, False),
   ('bt',    1, 32, Encoding.BECH32M, False, False, False),
-  ('tltc',   17, 32, Encoding.BECH32M, False, False, False),
-  ('rltc',  3,  1, Encoding.BECH32M, False, False, False),
-  ('ltc',   15, 41, Encoding.BECH32M, False, False, False),
-  ('tltc',    0, 16, Encoding.BECH32,  False, False, False),
-  ('rltc',  0, 32, Encoding.BECH32,  True,  False, False),
-  ('ltc',    0, 16, Encoding.BECH32,  True,  False, False),
-  ('tltc',    0, 32, Encoding.BECH32,  False, True,  False),
-  ('rltc',  0, 20, Encoding.BECH32,  False, False, True),
-  ('ltc',    0, 20, Encoding.BECH32M, False, False, False),
-  ('tltc',    0, 32, Encoding.BECH32M, False, False, False),
-  ('rltc',  0, 20, Encoding.BECH32M, False, False, False),
-  ('ltc',    1, 32, Encoding.BECH32,  False, False, False),
-  ('tltc',    2, 16, Encoding.BECH32,  False, False, False),
-  ('rltc', 16, 20, Encoding.BECH32,  False, False, False),
+  ('tnyc',   17, 32, Encoding.BECH32M, False, False, False),
+  ('rnyc',  3,  1, Encoding.BECH32M, False, False, False),
+  ('nyc',   15, 41, Encoding.BECH32M, False, False, False),
+  ('tnyc',    0, 16, Encoding.BECH32,  False, False, False),
+  ('rnyc',  0, 32, Encoding.BECH32,  True,  False, False),
+  ('nyc',    0, 16, Encoding.BECH32,  True,  False, False),
+  ('tnyc',    0, 32, Encoding.BECH32,  False, True,  False),
+  ('rnyc',  0, 20, Encoding.BECH32,  False, False, True),
+  ('nyc',    0, 20, Encoding.BECH32M, False, False, False),
+  ('tnyc',    0, 32, Encoding.BECH32M, False, False, False),
+  ('rnyc',  0, 20, Encoding.BECH32M, False, False, False),
+  ('nyc',    1, 32, Encoding.BECH32,  False, False, False),
+  ('tnyc',    2, 16, Encoding.BECH32,  False, False, False),
+  ('rnyc', 16, 20, Encoding.BECH32,  False, False, False),
 ]
 
 def is_valid(v):
@@ -131,7 +144,7 @@ def is_valid(v):
 
 def is_valid_bech32(v):
     '''Check vector v for bech32 validity'''
-    for hrp in ['ltc', 'tltc', 'rltc']:
+    for hrp in ['nyc', 'tnyc', 'rnyc']:
         if decode_segwit_address(hrp, v) != (None, None):
             return True
     return False
@@ -159,7 +172,7 @@ def gen_valid_bech32_vector(template):
 def gen_valid_vectors():
     '''Generate valid test vectors'''
     glist = [gen_valid_base58_vector, gen_valid_bech32_vector]
-    tlist = [templates, bech32_templates]
+    tlist = [valid_templates, bech32_templates]
     while True:
         for template, valid_vector_generator in [(t, g) for g, l in zip(glist, tlist) for t in l]:
             rv, payload = valid_vector_generator(template)

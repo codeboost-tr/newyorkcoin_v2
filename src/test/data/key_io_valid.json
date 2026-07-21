@@ -1,71 +1,71 @@
 [
     [
-        "LT2KVaAy1ppRuxRgrS5RNU3vBsy7RibPeA",
-        "76a914558dbca7118cd5894502767c7b2ffc21a22f54db88ac",
+        "RWQooKujRWB8HVNvUbdiddfNVYnyA6TG8w",
+        "76a914e7cb5f191e2cd9174e75983c2194384fb9adee6388ac",
         {
             "chain": "main",
             "isPrivkey": false
         }
     ],
     [
-        "MHrYRxAiMNBTku3eoDHwhA1LQGDjUStZW2",
-        "a9146d328a5b2a20d943a641c8d29b6cc3c2d2df85d387",
+        "9sKsYTMNCART2aWMqZVPkXYTtYNX8HB7wm",
+        "a91409c254ada5467c9732dab67fdd8d02ac9bb273b387",
         {
             "chain": "main",
             "isPrivkey": false
         }
     ],
     [
-        "M9dw1FAoWpHC6PcMzoCHhqQ9McvTyG5Ywj",
-        "a914130ef8742ad7492b389509252c6721775fb1127387",
-        {
-            "chain": "main",
-            "isPrivkey": false
-        }
-    ],
-    [
-        "mwXn5Vhicdav8Av3KMokx4YNuHoGRKxtWs",
-        "76a914afa9e672141e283dfbcc1cf28f3793a856d3878488ac",
+        "njLfLxwxowPx9XgkM3Qe5vpkYZSpAW33nv",
+        "76a914a6257d702fc085fd738be3eeb9ee2d51d301650288ac",
         {
             "chain": "test",
             "isPrivkey": false
         }
     ],
     [
-        "QXaUgLHkZcbJb2j5XgMYzY8cF9YM48Y81Z",
-        "a9147860667e60a6545e18e541984094b29c9c46991b87",
+        "QTvdX1QbAwYc9LtsRm4vP5op9zJNnuexJc",
+        "a914504f985697ca09aba2ea200980de2c39198546e987",
         {
             "chain": "test",
             "isPrivkey": false
         }
     ],
     [
-        "QNfyfXGXxfeaG8SQpnHxS2J27ysokKCtZL",
-        "a91416b18b6002004f5755040e8809755a1777fab4a687",
+        "nUjwj5aWMJPh8J6e1V8Dy84dL7fVMyqm9e",
+        "76a9140602d8425afff3caf247fd03a44acd55db253b2f88ac",
         {
-            "chain": "test",
+            "chain": "signet",
             "isPrivkey": false
         }
     ],
     [
-        "mpWvR79tSrA5xeziB6mjNYWdaVRwBpgnUP",
-        "76a91462b790654f809d32202587c6a43456ffc1965d8388ac",
+        "QcBaguKSe9b2n8cG3Gc5BR1pA5aLCQqD7R",
+        "a914aae47a99ac7ee644752cfc1dc8fb6db0b746d4e187",
+        {
+            "chain": "signet",
+            "isPrivkey": false
+        }
+    ],
+    [
+        "mqbbMPS4Tr2Y3J1DCqTpqB2iCy6AcCc1EC",
+        "76a9146e91db0fa2700d86edd5c3a803d0a70d6b7be74388ac",
         {
             "chain": "regtest",
             "isPrivkey": false
         }
     ],
     [
-        "QgDNrG4nJpE4VV7PcFMFhkTgwAHWxWS7pj",
-        "a914d71bee7a1395c10c9ca9a7f53ac086b53e74369d87",
+        "QfmwtJpizQhaM7v8fHmMQ9NJHYWbjdxMcm",
+        "a914d24cb16a1eac07f2d1be5d9fd7a11f01d00b874787",
         {
             "chain": "regtest",
             "isPrivkey": false
         }
     ],
     [
-        "6vqpCruyRS9bEY6ZVrL8S9EL5h2MnQZffzzqrpNP9i8YozvXTKs",
-        "e2993b1b4a8b1e00c024715e106d7c79ada82528b80b938a566cfc71f9ffcf42",
+        "7L5tsmeixfSVQEJqZnk6ZSfcxfL1KxSJaQHreBj2ymRT4Tfr5Zt",
+        "d7948fe3af801fbd71d81cc297c7cbaffb39df1ca58d247855964da32e491481",
         {
             "chain": "main",
             "isCompressed": false,
@@ -73,8 +73,8 @@
         }
     ],
     [
-        "T5MZ5z9WqJxzVxYyVPecTJUSDkzDWrUYe1JuSX2AqJ9jKmLJrvTE",
-        "44b78d45adc801a65949661d5df1c4a44f532cd422be413a505d776784ddbe25",
+        "UpY4TtTQocvZWu9fmx77142FZcuimxrKrxez2QFJgMTr5AH2WWAn",
+        "0fb2f1d3ba7cc7216491ef0dbb319abff492d9102611c9a617a6f5155e089012",
         {
             "chain": "main",
             "isCompressed": true,
@@ -82,8 +82,8 @@
         }
     ],
     [
-        "927w9fGHSbrUEWHdfBd5AU4mDFmhEnBkxLyfsRn4oNwPTLQw7qS",
-        "466d8cbefaa702b2f597ade1c4f9fa4b0e709527e214443990c13e3fdcb53deb",
+        "97KHJVYLqaE4ZXvmSyNBS98q6fHwQbH3Fkx8LL6wfWfaP54akBH",
+        "f2ac9773927ec0c726897ca5b5cdcd54763254fe728db4b18eb420e454ed3928",
         {
             "chain": "test",
             "isCompressed": false,
@@ -91,8 +91,8 @@
         }
     ],
     [
-        "cQaeKQwuakynYD9iebyxsKiBKF8RT3G6zoqRNUDybMsAimANRypo",
-        "597b8f070b98ee1f997fa3cb976466fa0e931256246b8c7177d2b067eed06ad7",
+        "chMTSmz7U4NrMv7ocL2k1MrqEPw9abJi9iweqCyTnzTb8YAXCEvp",
+        "4def2bbc1cec6285668c0f693f6f1469968701ba5a5e909b8a7f57a705370b4c",
         {
             "chain": "test",
             "isCompressed": true,
@@ -100,8 +100,26 @@
         }
     ],
     [
-        "91r1BgekgDyZn3WVnsLtTvJWcJV2qDakQr23cqFe61BzAc1BajU",
-        "224184c71e5fb90852b7dfa11b980ddddebe5433492108e74a81c17a0f634bbf",
+        "96iPjUSzKa8BX1JmM7EzVDF9EdTimE9X4sx7X7Ah2dU72RQd7Kj",
+        "a37443b2a0f13d57f849e8fcded6a4a4969f402227b4c8f112c71db9f024543a",
+        {
+            "chain": "signet",
+            "isCompressed": false,
+            "isPrivkey": true
+        }
+    ],
+    [
+        "cgJbpM9rWAb9aunQSSfsJcQoH9RsnrCCNJC1JQ1oxb9TUK5Cdwsb",
+        "2ea0b7f077997a4922d95bffd468f0f0f0c3234743c44fbb0a7599b1b327a2d1",
+        {
+            "chain": "signet",
+            "isCompressed": true,
+            "isPrivkey": true
+        }
+    ],
+    [
+        "93C1rF5tgwGuuPej7pfwm2rNL7aVhrxuYrqKEybWzsBAspzFhfx",
+        "d363f7dca8d6ff396a816dac2278d6ee3763064d442899a45b2d43133cb54924",
         {
             "chain": "regtest",
             "isCompressed": false,
@@ -109,8 +127,8 @@
         }
     ],
     [
-        "cSZsfcBGqQDBXuQeqAhDfqaoP54LhgiQvMkMctyrRuVR3BGQmbTU",
-        "94c2eb1622023690b2fb86fe9c7091c63c9838fccc81b0e16adf3936d1a058d1",
+        "cPN3HU1khyAUAw8Ls4rfV5D1vSPc184n4Bzs9gPKs2ZuQv1uyC3x",
+        "352948b586200c533c5890913560b51536de6c63cc07934f4a2dc7ebebcb3040",
         {
             "chain": "regtest",
             "isCompressed": true,
@@ -118,8 +136,8 @@
         }
     ],
     [
-        "ltc1qhdhvrwe6rgqns8fz28tee0hphr5x7ulw5exv4w",
-        "0014bb6ec1bb3a1a01381d2251d79cbee1b8e86f73ee",
+        "nyc1qsl8rzr4ch0zeg0hrzf6y5csk768rvvu43csl6u",
+        "001487ce310eb8bbc5943ee312744a6216f68e363395",
         {
             "chain": "main",
             "isPrivkey": false,
@@ -127,8 +145,8 @@
         }
     ],
     [
-        "ltc1qa9dykljtgeayhm8ygx25sc22p0wzgudpe4hw9dyvaz0ye3j5kduq9mf68z",
-        "0020e95a4b7e4b467a4bece4419548614a0bdc2471a1cd6ee2b48ce89e4cc654b378",
+        "nyc1q6ghrt6c7tttxlredktxzgg9yj2wmtexw0menxxmucl85uwgjhvfsl0wyvu",
+        "0020d22e35eb1e5ad66f8f2db2cc2420a4929db5e4ce7ef3331b7cc7cf4e3912bb13",
         {
             "chain": "main",
             "isPrivkey": false,
@@ -136,8 +154,8 @@
         }
     ],
     [
-        "ltc1ppu2gv0tujus0f6eggrk7eqmaf0567x6zer4fcuhz4z7ztzq9u9yseqxltc",
-        "51200f14863d7c9720f4eb2840edec837d4be9af1b42c8ea9c72e2a8bc258805e149",
+        "nyc1ppyywcwesnmrc0y827j76k0rsrkkmu0xhhu60ztjv4c7he23exnrq9zf93z",
+        "51200908ec3b309ec78790eaf4bdab3c701dadbe3cd7bf34f12e4cae3d7caa3934c6",
         {
             "chain": "main",
             "isPrivkey": false,
@@ -145,8 +163,8 @@
         }
     ],
     [
-        "ltc1zjwls6j8c4u",
-        "520293bf",
+        "nyc1zxusst8eexk",
+        "52023721",
         {
             "chain": "main",
             "isPrivkey": false,
@@ -154,8 +172,8 @@
         }
     ],
     [
-        "tltc1qpftpsvdn6mjp8celrkj0qxqy4jlapl959rlwg9",
-        "00140a561831b3d6e413e33f1da4f01804acbfd0fcb4",
+        "tnyc1qyx83sv2qfdwk46tkjge94tsqgrlztxal493ejl",
+        "0014218f1831404b5d6ae97692325aae0040fe259bbf",
         {
             "chain": "test",
             "isPrivkey": false,
@@ -163,8 +181,8 @@
         }
     ],
     [
-        "tltc1q9awqm4ah2lmettm3hnhgqtssvz527jxglxxshkt75l0ygdl3vlyqy5739f",
-        "00202f5c0dd7b757f795af71bcee802e1060a8af48c8f98d0bd97ea7de4437f167c8",
+        "tnyc1q3vj44rvduarzwk820pycphyrcvygsme3z4r6gf9vwsvn2d30stwsxq4fdz",
+        "00208b255a8d8de7462758ea784980dc83c308886f311547a424ac741935362f82dd",
         {
             "chain": "test",
             "isPrivkey": false,
@@ -172,8 +190,8 @@
         }
     ],
     [
-        "tltc1pfnh6ljtrdgk4hh3acvu39a742vaqmd2khnd0tp9d0prcnvpq6zgqn0ecgk",
-        "51204cefafc9636a2d5bde3dc33912f7d5533a0db556bcdaf584ad784789b020d090",
+        "tnyc1ps83yfertqv5kn20g842ln32mjjh6junqclc6yhzhtr3rnddtwegs6wgpa2",
+        "512081e244e46b032969a9e83d55f9c55b94afa97260c7f1a25c5758e239b5ab7651",
         {
             "chain": "test",
             "isPrivkey": false,
@@ -181,8 +199,8 @@
         }
     ],
     [
-        "tltc1rdljmhjrmdhjsu6qgm75lkm9l0540kkfu",
-        "53106fe5bbc87b6de50e6808dfa9fb6cbf7d",
+        "tnyc1rx0v47fj44xlvzvp7r6zwhwxkcuwjx0pg",
+        "531033d95f2655a9bec1303e1e84ebb8d6c7",
         {
             "chain": "test",
             "isPrivkey": false,
@@ -190,8 +208,44 @@
         }
     ],
     [
-        "rltc1q3kquwp848h4juq7rl5q3wqsr29pd3d6wprzz8k",
-        "00148d81c704f53deb2e03c3fd011702035142d8b74e",
+        "tnyc1qfuq0g6ghe8f40nyn7kj6uptxfppsa273r7usjf",
+        "00144f00f46917c9d357cc93f5a5ae056648430eabd1",
+        {
+            "chain": "signet",
+            "isPrivkey": false,
+            "tryCaseFlip": true
+        }
+    ],
+    [
+        "tnyc1qlyxv7meqsd52e0h2pwu4jqyfdcp0utr4lstjak4lw0kpthrlccsqac4kc4",
+        "0020f90ccf6f208368acbeea0bb95900896e02fe2c75fc172edabf73ec15dc7fc620",
+        {
+            "chain": "signet",
+            "isPrivkey": false,
+            "tryCaseFlip": true
+        }
+    ],
+    [
+        "tnyc1pzmmn5ls97xhh7jemlszrmm6hy8etjw8lhwah4xznhkqqty09hqmqlr52th",
+        "512016f73a7e05f1af7f4b3bfc043def5721f2b938ffbbbb7a9853bd800591e5b836",
+        {
+            "chain": "signet",
+            "isPrivkey": false,
+            "tryCaseFlip": true
+        }
+    ],
+    [
+        "tnyc1rg6ptvyv9pwlzg0nymakkmflqavzwtslxp3463ymq2trgxkmz6xzq6kahe7",
+        "53204682b611850bbe243e64df6d6da7e0eb04e5c3e60c6ba8936052c6835b62d184",
+        {
+            "chain": "signet",
+            "isPrivkey": false,
+            "tryCaseFlip": true
+        }
+    ],
+    [
+        "rnyc1qz30v062qt7rsn5ehjzastk83lrns5nn987cq8x",
+        "0014145ec7e9405f8709d33790bb05d8f1f8e70a4e65",
         {
             "chain": "regtest",
             "isPrivkey": false,
@@ -199,8 +253,8 @@
         }
     ],
     [
-        "rltc1qlmpaz9m7vd2578yjlcesf5e0m0fumev8n54nxks4ld66sn7qztfqurdukc",
-        "0020fec3d1177e63554f1c92fe3304d32fdbd3cde5879d2b335a15fb75a84fc012d2",
+        "rnyc1qf39qpys5hhxzv7lulqf9qhwkdyclynd2squ9w9tv3w2pzdw7mcqshmy5m6",
+        "00204c4a009214bdcc267bfcf812505dd66931f24daa803857156c8b941135dede01",
         {
             "chain": "regtest",
             "isPrivkey": false,
@@ -208,8 +262,8 @@
         }
     ],
     [
-        "rltc1prd75w9a3v4kfjtkx93z0m2tdl4mpyfqty9kaxxp4zdnlrrkrv4lq6eksea",
-        "51201b7d4717b1656c992ec62c44fda96dfd7612240b216dd318351367f18ec3657e",
+        "rnyc1pehek79hlnyq3z8nkwfu5l637vhjnky865kq8acccnwy7hy5xtgask2z547",
+        "5120cdf36f16ff9901111e7672794fea3e65e53b10faa5807ee3189b89eb92865a3b",
         {
             "chain": "regtest",
             "isPrivkey": false,
@@ -217,8 +271,8 @@
         }
     ],
     [
-        "rltc1sp4r7tfack86dyy6mhs0ptnzrccdhce92kuvzuna7085xg8qm7kxm0fq7xzfsd889mzm4we",
-        "60280d47e5a7b8b1f4d2135bbc1e15cc43c61b7c64aab7182e4fbe79e8641c1bf58db7a41e3093069ce5",
+        "rnyc1s55l0xeqyktyldch02s5el07mh8fxxhj6zpptdeztua9pl9e28gaqxk63dqqu0cfh85gh4h",
+        "6028a53ef36404b2c9f6e2ef54299fbfdbb9d2635e5a1042b6e44be74a1f972a3a3a035b516801c7e137",
         {
             "chain": "regtest",
             "isPrivkey": false,
@@ -226,72 +280,72 @@
         }
     ],
     [
-        "LbfVMz974gbbGFqXF7FZUpSBWSbwBHDwR5",
-        "76a914b4565f467408e9e1c1d2a3b0ccdeff84db3a3b9388ac",
+        "RUtL1fjaPUHzasSoNQqrcLfcpyJzBw7jgz",
+        "76a914d70f923d164264edb265763eba0c55b23bc3023488ac",
         {
             "chain": "main",
             "isPrivkey": false
         }
     ],
     [
-        "MWGEAUUZoN4r6puz8KsgnE9wNTQ8fGWCEy",
-        "a914f54ec8d7b0c3f8ab8194db3432d19f8d44d03b1287",
+        "ACuKA1JAQk79FygQReUx9E58X3pyygnkpQ",
+        "a914e07fd3f8c4d095a7761313146f7fb487df5a610687",
         {
             "chain": "main",
             "isPrivkey": false
         }
     ],
     [
-        "MNYP3h6XQQcVBohyVrxAtRGhbyvPpXzyFR",
-        "a914a09bd94f4b099d721ddc95bc8ed928aef40833ce87",
-        {
-            "chain": "main",
-            "isPrivkey": false
-        }
-    ],
-    [
-        "mnJYjG654G354sX1xEBaPGvGCoe34M1Pqr",
-        "76a9144a7037b0cc4ae15278e7a62549e2acde3f60186688ac",
+        "ncfiJhXysTuuehHrtZ5BN2XSSRTFY4VF6d",
+        "76a9145cf6fc04964817b87af340a6f972e13f2ced0c1088ac",
         {
             "chain": "test",
             "isPrivkey": false
         }
     ],
     [
-        "QQjXG2nbVfxysmaEZQVL9TsS359WjDT5ux",
-        "a9142d4d6b05448a911116292a177c04f7f6bd29ea2c87",
+        "QMKYbo4V8S6KdKMCz6V327WUo6sc4cNTdw",
+        "a91407dc2d43b48d1ff577862160f9eba606c8efe7ae87",
         {
             "chain": "test",
             "isPrivkey": false
         }
     ],
     [
-        "QjqYEtoPWjTVxZQFUWdWj6r48hM6i2ESc2",
-        "a914fedb1f41a5ef541c79a6bedca3f15857414a63fb87",
+        "nkC1quJ1hEzouGXhLeVynurK7yWxrfqdav",
+        "76a914af7afbd72ebcd66fd5fe949d2afd92723c6d043388ac",
         {
-            "chain": "test",
+            "chain": "signet",
             "isPrivkey": false
         }
     ],
     [
-        "mtJ7NFSGv2WuwsigXhQymzMhxFh9uANCTY",
-        "76a9148c2bcd075a332c4eafaf30876ca9e7a091d037de88ac",
+        "QQqk3CUqdadHPYX5pePKG1WTkJmks4upb6",
+        "a9142e7a94baf81f0ebfb444d9cb0614f5d22b95905787",
+        {
+            "chain": "signet",
+            "isPrivkey": false
+        }
+    ],
+    [
+        "n2SXomdnufkhCpUJ6n6xpDrrYzTqNJhedV",
+        "76a914e584894e5f94e848ee1b05d98b701a9c1b30e8ab88ac",
         {
             "chain": "regtest",
             "isPrivkey": false
         }
     ],
     [
-        "QfS38XTvXmuNFeyS8orinxHkDkonMDS1ih",
-        "a914ce88c090d0ee540cab7e2d2286f686434d33d61987",
+        "QY5QiC5qdQMeTLkcoLJVjwiz5cbckaT7hY",
+        "a9147dd926a6448b3034bb8aaec21699dccc239f9b1987",
         {
             "chain": "regtest",
             "isPrivkey": false
         }
     ],
     [
-        "6u9LAemSUL9Zq9uThTQMCUexBr2ZG26Cr5pShqe3E7R2bp4EHqj",
-        "02fadbc11d492c3cd47099f60ff5f47edf5883a79157deb8950453733cf45c0e",
+        "7KZGX3MuuGt8zXMBqz4cHctzsPjknwdtM6Pdzx4SHvABtCZX16A",
+        "9209ce7e97cab70aea8dff1c4d52b4cdc94e40423ce66b0b66945acf5efcd159",
         {
             "chain": "main",
             "isCompressed": false,
@@ -299,8 +353,8 @@
         }
     ],
     [
-        "TAhBKuN6oDx4cGuTcfxEEt6qShF7juasHLj5wgURB5MoK7cK9n9A",
-        "e3ffeebbdc2a885f985197af145401cd1146aaf51a1b26bf92580fa064ea462d",
+        "UstuYvmAro7VfZfmbs9mE5jtwb4whF3qrnLTkQMkuAYG9kZMLNjc",
+        "73ef71e67243efebaa143e09eba7d1a6babf075c9aa5dd0dd4ff49d701c0c1d7",
         {
             "chain": "main",
             "isCompressed": true,
@@ -308,8 +362,8 @@
         }
     ],
     [
-        "91oGUyww3NMouqNHkofup5jAVxznXY7hLgVgBikeNGinSazn4K4",
-        "1c0b00272f3b92dd14781a546daf5e55c49e767193e5bc2aa77b0e4ed96e6ea8",
+        "96ZMBmLCkdJnwH75Abr377TPrtF3DVJMWsRcSspZhfZXUQn5epJ",
+        "8eeb3a3462722346ad3780ce8facb02bfaa9b428df18b47dad97226f5ef7f5e8",
         {
             "chain": "test",
             "isCompressed": false,
@@ -317,8 +371,8 @@
         }
     ],
     [
-        "cSksQejZXoxFKJ4Yb5LVfFuT1aSCAmmLmVMMYYHNS4Nvx9RVYDMf",
-        "9a6afd66dbaf86daf24c0c526fa1b5e8b5e0c93ae8dd91c04b4d8262301f7bcb",
+        "cnBymamPzwHMnD8qL6L1F9Hote6b7eD46VeKeZ4svzE9VVBb6ZxL",
+        "de3eeeb502ec9eedae4355ea6c2ed988fd12cc790ebc8b40dcfe5ddf6cb295af",
         {
             "chain": "test",
             "isCompressed": true,
@@ -326,8 +380,26 @@
         }
     ],
     [
-        "92dzMkJxPWn99ZQ7b6rWZQCKybwqWVvyDirELp6Xb4ZsbGwGnUh",
-        "8aac1583b235f0c0e51ab5f141d0a883f3b3864e3afb61faa006be18c57f04e5",
+        "95wqcbUkgUQkXU91YnFdoT6ga9imkxsNdvw45t574PoNc9Bp8MG",
+        "3e4a147d969e93ec42272ff6b7a717a4ded887a415d20a08f6c911ca74303a31",
+        {
+            "chain": "signet",
+            "isCompressed": false,
+            "isPrivkey": true
+        }
+    ],
+    [
+        "ciiDyoFQWYrQaQWjSsVHRAZmmxgYddzi91qp53v2SzHoc4BY4njG",
+        "7674968ee4ff6b19900eb6dc5fa44b28fbade239b17c89afe7b87ba43ceece62",
+        {
+            "chain": "signet",
+            "isCompressed": true,
+            "isPrivkey": true
+        }
+    ],
+    [
+        "929RqVkLz9yeXm1mSVGQuDWAZU5HLPsKbvduxDiU4CcFoGiXxUp",
+        "49d25482c9eb2c72ef57c78849b67314b4bafa49a5d9e7d18199ddb9d02f235e",
         {
             "chain": "regtest",
             "isCompressed": false,
@@ -335,8 +407,8 @@
         }
     ],
     [
-        "cPsZQu3vG7RtqZk9nfq2ufnspK1vy6MWt3kp2VmZ9hPzpjK4Zfjm",
-        "4458e16184535658c6c43a87668b561352bdc246647025aaa598c2f2f9603ac8",
+        "cThkeKgqU39rG513CykR9cs3wU23fSBshKapTqqNA2uFx3aJyT9q",
+        "b6a6ea7c78a4ef3d232c4d2ea7a792d74031e1c840c2523ddbe591a441d11da9",
         {
             "chain": "regtest",
             "isCompressed": true,
@@ -344,8 +416,8 @@
         }
     ],
     [
-        "ltc1qxjkwr09apz3w5hsr33uyq9sdfx8tn26g39g00g",
-        "001434ace1bcbd08a2ea5e038c7840160d498eb9ab48",
+        "nyc1qu8wzvyt35d2fyjduv79y6dey338szv0t38mc9r",
+        "0014e1dc261171a3549249bc678a4d37248c4f0131eb",
         {
             "chain": "main",
             "isPrivkey": false,
@@ -353,8 +425,8 @@
         }
     ],
     [
-        "ltc1qjaxhjwmp26afq279pza0zd6lrguxfcee08fw4xv5r6ksrr0wk4uqzjxfdz",
-        "0020974d793b6156ba902bc508baf1375f1a3864e33979d2ea99941ead018deeb578",
+        "nyc1qzqflqdtqt8jscfvrcky6gmxks26p3ks7v7fazlww09hz2agjuj5sv7frax",
+        "00201013f0356059e50c2583c589a46cd682b418da1e6793d17dce796e257512e4a9",
         {
             "chain": "main",
             "isPrivkey": false,
@@ -362,8 +434,8 @@
         }
     ],
     [
-        "ltc1p59fcnxdn05t6adags3dc0vuvm4ejd7chsspp9ryqkvvlxrwkdylqfsruty",
-        "5120a1538999b37d17aeb7a8845b87b38cdd7326fb178402128c80b319f30dd6693e",
+        "nyc1ph90mlquxyshq5vu5cq2qazjw67tyl8gppe30h08gmls8gkm3p9fqlxnr5g",
+        "5120b95fbf8386242e0a3394c0140e8a4ed7964f9d010e62fbbce8dfe0745b710952",
         {
             "chain": "main",
             "isPrivkey": false,
@@ -371,8 +443,8 @@
         }
     ],
     [
-        "ltc1zpr0qrh9zvs",
-        "520208de",
+        "nyc1zet8qcu5prh",
+        "5202cace",
         {
             "chain": "main",
             "isPrivkey": false,
@@ -380,8 +452,8 @@
         }
     ],
     [
-        "tltc1quf7ycjczjpjd6u9a8mpa00jl7g9aplhy8e0vf7",
-        "0014e27c4c4b029064dd70bd3ec3d7be5ff20bd0fee4",
+        "tnyc1qcy88rafxzhy75te5v9qypjsq7dk8s7p0ny35t9",
+        "0014c10e71f52615c9ea2f34614040ca00f36c78782f",
         {
             "chain": "test",
             "isPrivkey": false,
@@ -389,8 +461,8 @@
         }
     ],
     [
-        "tltc1qzu820r8szwesmaj7acyvkute2ch2p89rppld6xkmsnfj06sttuaqjymary",
-        "0020170ea78cf013b30df65eee08cb7179562ea09ca3087edd1adb84d327ea0b5f3a",
+        "tnyc1qe44d3eww67svrvwuntxnfcgg0l3ahk4dufkl3u7kvseqlsemmwns2zlajg",
+        "0020cd6ad8e5ced7a0c1b1dc9acd34e1087fe3dbdaade26df8f3d664320fc33bdba7",
         {
             "chain": "test",
             "isPrivkey": false,
@@ -398,8 +470,8 @@
         }
     ],
     [
-        "tltc1pcdvmgxjvz4glnvxfufqt7qgcz94dxqa8t838upq4ajqf2r6f7dastfdk7r",
-        "5120c359b41a4c1551f9b0c9e240bf0118116ad303a759e27e0415ec80950f49f37b",
+        "tnyc1psypu6c2v0a60rzxln8wat90jrxy90g809sada37g4rml8nj9lw5sj3c07h",
+        "51208103cd614c7f74f188df99ddd595f2198857a0ef2c3adec7c8a8f7f3ce45fba9",
         {
             "chain": "test",
             "isPrivkey": false,
@@ -407,8 +479,8 @@
         }
     ],
     [
-        "tltc1rvc3hu7rz7ypgx0ewvf9mnf84ssn9gtu3",
-        "531066237e7862f102833f2e624bb9a4f584",
+        "tnyc1recpw3e3ln2s2q6gwh3208l85gc0y5aw5",
+        "5310ce02e8e63f9aa0a0690ebc54f3fcf446",
         {
             "chain": "test",
             "isPrivkey": false,
@@ -416,8 +488,44 @@
         }
     ],
     [
-        "rltc1q8zvr5cvkf2ke0c5vjm8u6z66zck8en8grn9n22",
-        "001438983a61964aad97e28c96cfcd0b5a162c7ccce8",
+        "tnyc1qperqjgv9dfhla4ca0tw8uqu7n7uglhzlqjnrw2",
+        "00140e460921856a6ffed71d7adc7e039e9fb88fdc5f",
+        {
+            "chain": "signet",
+            "isPrivkey": false,
+            "tryCaseFlip": true
+        }
+    ],
+    [
+        "tnyc1qkeeudf80nchcts0m2ar6t6dy38f0sufp45ghznxxqrfmc7v96qfsmrqv3p",
+        "0020b673c6a4ef9e2f85c1fb5747a5e9a489d2f87121ad11714cc600d3bc7985d013",
+        {
+            "chain": "signet",
+            "isPrivkey": false,
+            "tryCaseFlip": true
+        }
+    ],
+    [
+        "tnyc1pdw4v25y3ttlvphuf37vv0ccz5uy6alwtqjlxzreek32q85vj7fjq3smss2",
+        "51206baac550915afec0df898f98c7e302a709aefdcb04be610f39b45403d192f264",
+        {
+            "chain": "signet",
+            "isPrivkey": false,
+            "tryCaseFlip": true
+        }
+    ],
+    [
+        "tnyc1rgy0zq75nmrhkeuzvtwehlz70w2qjf7atxws22p9q3hdlfqgr0z3sy92n3a",
+        "5320411e207a93d8ef6cf04c5bb37f8bcf728124fbab33a0a504a08ddbf4810378a3",
+        {
+            "chain": "signet",
+            "isPrivkey": false,
+            "tryCaseFlip": true
+        }
+    ],
+    [
+        "rnyc1qnjauscjtzxggy6kp773s0w75pxam0r59ycd4na",
+        "00149cbbc8624b1190826ac1f7a307bbd409bbb78e85",
         {
             "chain": "regtest",
             "isPrivkey": false,
@@ -425,8 +533,8 @@
         }
     ],
     [
-        "rltc1q9a3fdc7cmk0ls0tp42lj05jwdhu79jd5str2dnq5nz4xv73wl79qrlnh7e",
-        "00202f6296e3d8dd9ff83d61aabf27d24e6df9e2c9b482c6a6cc1498aa667a2eff8a",
+        "rnyc1q4sc4md59x2rpr9gxqcrp5ezsy8ex8emtzgvvj9g3x5txjyap80uqrqj2ag",
+        "0020ac315db685328611950606061a645021f263e76b1218c9151135166913a13bf8",
         {
             "chain": "regtest",
             "isPrivkey": false,
@@ -434,8 +542,8 @@
         }
     ],
     [
-        "rltc1pw6ly729khz7ndll807q5gx77q0nxpkpl7xauxshnzafs906sz3kqm6rx4v",
-        "512076be4f28b6b8bd36ffe77f81441bde03e660d83ff1bbc342f3175302bf50146c",
+        "rnyc1phshd422m0fj20zs86maj83xp4nel0h0lmmzx7en5uh2z8x029yfs80v8ze",
+        "5120bc2edaa95b7a64a78a07d6fb23c4c1acf3f7ddffdec46f6674e5d42399ea2913",
         {
             "chain": "regtest",
             "isPrivkey": false,
@@ -443,8 +551,8 @@
         }
     ],
     [
-        "rltc1s207hhga4nkr2vnhc02sr09h3xdp8k74eppgtd9f9js0j8cw5qjw693dd3k8apxrldxdn3f",
-        "602853fd7ba3b59d86a64ef87aa03796f133427b7ab90850b69525941f23e1d4049da2c5ad8d8fd0987f",
+        "rnyc1snu20gs8tynef4ams9c3jjs3qfqldrmq2y4mqyu5u96dr8e823n34pe2nk57l4gs4xdq9s7",
+        "60289f14f440eb24f29af7702e23294220483ed1ec0a257602729c2e9a33e4ea8ce350e553b53dfaa215",
         {
             "chain": "regtest",
             "isPrivkey": false,
@@ -452,18 +560,50 @@
         }
     ],
     [
-        "LgUPnP2UZxmFBJb8FDgNd5JcU9b7CNfrw1",
-        "76a914e915c49f55d8de0b6041de19c9fa2f21820b201288ac",
+        "RKX87CiYwV1DtsqKjuAoxaWMrSdjbHsjFb",
+        "76a9147053c43c74b40c600d9cc0f52586e7b709066c5588ac",
         {
             "chain": "main",
             "isPrivkey": false
         }
     ],
     [
-        "MU2UAbDxiiirZuGTZ6nSaFajsXFkLHozcU",
-        "a914dcc465d5dd517c24c4dc95d7a338fca76d753ddb87",
+        "A6hWnzH2mHJsujWnnJhPsDNkJPV2cjJm1q",
+        "a9149c73cbdf1bfbbd21a66d6985fb0b8fca1f45730987",
         {
             "chain": "main",
+            "isPrivkey": false
+        }
+    ],
+    [
+        "nabYzfAJwq5QRtoXZTHL7H8jFzsDQAbvsP",
+        "76a914463d4beb25860be9d7634411d412888577351eb088ac",
+        {
+            "chain": "test",
+            "isPrivkey": false
+        }
+    ],
+    [
+        "Qht8Ss5bY6wjVLxs7tY2YThUdSXvvuU2kW",
+        "a914e96841aa3b6639d1f98aedee379bdaada8e3dfc187",
+        {
+            "chain": "test",
+            "isPrivkey": false
+        }
+    ],
+    [
+        "njdqZLd1WgoLKicLw9h3HshpVVSqBNVk8o",
+        "76a914a9651646455d1dafa56627cf82ee074620c79fed88ac",
+        {
+            "chain": "signet",
+            "isPrivkey": false
+        }
+    ],
+    [
+        "QT9VcyFLcUqM6HjUq9PTohrLcMQpo5eQin",
+        "a91447c648d7f93a980695e9dae731b942c38f24810687",
+        {
+            "chain": "signet",
             "isPrivkey": false
         }
     ]
